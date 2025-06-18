@@ -1,4 +1,3 @@
-
 export interface Patient {
   id: string;
   name: string;
@@ -13,6 +12,7 @@ export interface Patient {
   documents: Document[];
   anamnesis: string;
   avatar?: string;
+  avatarColor?: string;
   createdAt: string;
 }
 

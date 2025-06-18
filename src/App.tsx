@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +8,6 @@ import Navbar from "@/components/layout/Navbar";
 import Dashboard from "@/pages/Dashboard";
 import PatientProfile from "@/pages/PatientProfile";
 import ChatIA from "@/pages/ChatIA";
-import Patients from "@/pages/Patients";
 import Schedule from "@/pages/Schedule";
 import Agents from "@/pages/Agents";
 import Settings from "@/pages/Settings";
@@ -31,12 +29,11 @@ const App = () => {
             <Navbar />
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/patients/:id" element={<PatientProfile />} />
-              <Route path="/chat/:id" element={<ChatIA />} />
-              <Route path="/patients" element={<Patients />} />
               <Route path="/schedule" element={<Schedule />} />
               <Route path="/agents" element={<Agents />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/patients/:id" element={<PatientProfile />} />
+              <Route path="/chat/:id" element={<ChatIA />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
@@ -47,3 +44,4 @@ const App = () => {
 };
 
 export default App;
+
