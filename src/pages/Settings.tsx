@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,86 +14,73 @@ import { Separator } from '@/components/ui/separator';
 import { 
   User, 
   Bell, 
-  Palette, 
   Shield, 
   Database, 
-  MessageSquare, 
-  FileText,
   Save,
   Upload
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
-import { AnamnesisTemplate } from '@/types';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
-  const [userProfile, setUserProfile] = useState({
-    name: 'Dr. João Silva',
-    email: 'joao.silva@email.com',
-    specialty: 'Cardiologia',
-    crm: '12345-SP',
-    phone: '(11) 99999-9999',
-    bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.'
-  });
+  
+  // Função para carregar dados do localStorage
+  const loadUserProfile = () => {
+    const saved = localStorage.getItem('userProfile');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      name: 'Dr. João Silva',
+      email: 'joao.silva@email.com',
+      specialty: 'Cardiologia',
+      crm: '12345-SP',
+      phone: '(11) 99999-9999',
+      bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.'
+    };
+  };
 
+  const [userProfile, setUserProfile] = useState(loadUserProfile);
+  const [isProfileChanged, setIsProfileChanged] = useState(false);
+  
+  // Salvar automaticamente no localStorage quando o perfil mudar
+  useEffect(() => {
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  // Detectar mudanças no perfil
+  const handleProfileChange = (field: string, value: string) => {
+    setUserProfile(prev => ({ ...prev, [field]: value }));
+    setIsProfileChanged(true);
+  };
   const [notifications, setNotifications] = useState({
     emailReminders: true,
     whatsappAlerts: true,
     systemUpdates: false,
     appointmentConfirmations: true
   });
-
-  const [anamnesisTemplates, setAnamnesisTemplates] = useState<AnamnesisTemplate[]>([
-    {
-      id: '1',
-      specialty: 'Cardiologia',
-      template: 'Paciente refere dor no peito há [tempo]. Localização: [local]. Irradiação: [irradiação]. Fatores de melhora/piora: [fatores].'
-    },
-    {
-      id: '2',
-      specialty: 'Psicologia',
-      template: 'Paciente apresenta [sintomas] há [tempo]. História familiar: [história]. Eventos significativos: [eventos].'
-    }
-  ]);
-
-  const [newTemplate, setNewTemplate] = useState({ specialty: '', template: '' });
-
   const handleSaveProfile = () => {
-    // Simulação de salvamento
+    // Os dados já estão sendo salvos automaticamente no localStorage
+    setIsProfileChanged(false);
     alert('Perfil atualizado com sucesso!');
   };
-
   const handleSaveNotifications = () => {
     // Simulação de salvamento
     alert('Configurações de notificação atualizadas!');
   };
-
-  const handleAddTemplate = () => {
-    if (newTemplate.specialty && newTemplate.template) {
-      const template: AnamnesisTemplate = {
-        id: Date.now().toString(),
-        specialty: newTemplate.specialty,
-        template: newTemplate.template
-      };
-      setAnamnesisTemplates([...anamnesisTemplates, template]);
-      setNewTemplate({ specialty: '', template: '' });
-    }
-  };
-
-  const handleDeleteTemplate = (id: string) => {
-    setAnamnesisTemplates(anamnesisTemplates.filter(t => t.id !== id));
-  };
-
   return (
-    <div className="ml-64 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Configurações</h1>
-          <p className="text-muted-foreground mt-2">Gerencie suas preferências e configurações do sistema</p>
+    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Configurações</h1>
+            <p className="text-muted-foreground text-sm lg:text-base">Gerencie suas preferências e configurações do sistema</p>
+          </div>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="profile" className="space-y-4 lg:space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Perfil
@@ -101,14 +88,6 @@ const Settings = () => {
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
               Notificações
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="flex items-center gap-2">
-              <Palette className="w-4 h-4" />
-              Aparência
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Templates
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -125,25 +104,24 @@ const Settings = () => {
                   Informações Pessoais
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-4">
+              <CardContent className="space-y-6">                <div className="flex items-center gap-4">
                   <Avatar className="w-20 h-20">
                     <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="text-lg">JS</AvatarFallback>
+                    <AvatarFallback className="text-lg">
+                      {userProfile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <Button variant="outline" className="gap-2">
                     <Upload className="w-4 h-4" />
                     Alterar Foto
                   </Button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div><div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Nome Completo</Label>
                     <Input
                       id="name"
                       value={userProfile.name}
-                      onChange={(e) => setUserProfile({...userProfile, name: e.target.value})}
+                      onChange={(e) => handleProfileChange('name', e.target.value)}
                     />
                   </div>
                   <div>
@@ -152,12 +130,12 @@ const Settings = () => {
                       id="email"
                       type="email"
                       value={userProfile.email}
-                      onChange={(e) => setUserProfile({...userProfile, email: e.target.value})}
+                      onChange={(e) => handleProfileChange('email', e.target.value)}
                     />
                   </div>
                   <div>
                     <Label htmlFor="specialty">Especialidade</Label>
-                    <Select value={userProfile.specialty} onValueChange={(value) => setUserProfile({...userProfile, specialty: value})}>
+                    <Select value={userProfile.specialty} onValueChange={(value) => handleProfileChange('specialty', value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -175,7 +153,7 @@ const Settings = () => {
                     <Input
                       id="crm"
                       value={userProfile.crm}
-                      onChange={(e) => setUserProfile({...userProfile, crm: e.target.value})}
+                      onChange={(e) => handleProfileChange('crm', e.target.value)}
                     />
                   </div>
                   <div>
@@ -183,7 +161,7 @@ const Settings = () => {
                     <Input
                       id="phone"
                       value={userProfile.phone}
-                      onChange={(e) => setUserProfile({...userProfile, phone: e.target.value})}
+                      onChange={(e) => handleProfileChange('phone', e.target.value)}
                     />
                   </div>
                 </div>
@@ -193,7 +171,7 @@ const Settings = () => {
                   <Textarea
                     id="bio"
                     value={userProfile.bio}
-                    onChange={(e) => setUserProfile({...userProfile, bio: e.target.value})}
+                    onChange={(e) => handleProfileChange('bio', e.target.value)}
                     placeholder="Descreva sua experiência profissional..."
                   />
                 </div>
@@ -273,120 +251,7 @@ const Settings = () => {
                 <Button onClick={handleSaveNotifications} className="gap-2">
                   <Save className="w-4 h-4" />
                   Salvar Preferências
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Aparência */}
-          <TabsContent value="appearance">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="w-5 h-5" />
-                  Personalização da Interface
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Tema da Interface</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Atualmente usando tema {theme === 'dark' ? 'escuro' : 'claro'}
-                    </p>
-                  </div>
-                  <Button onClick={toggleTheme} variant="outline">
-                    {theme === 'dark' ? 'Mudar para Claro' : 'Mudar para Escuro'}
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <Label>Cores do Sistema</Label>
-                  <p className="text-sm text-muted-foreground mb-4">Personalize as cores principais do sistema</p>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-primary rounded-lg mx-auto mb-2"></div>
-                      <p className="text-xs">Primária</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-secondary rounded-lg mx-auto mb-2"></div>
-                      <p className="text-xs">Secundária</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-accent rounded-lg mx-auto mb-2"></div>
-                      <p className="text-xs">Destaque</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-muted rounded-lg mx-auto mb-2"></div>
-                      <p className="text-xs">Neutra</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Templates */}
-          <TabsContent value="templates">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Modelos de Anamnese
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <Label>Criar Novo Template</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Select value={newTemplate.specialty} onValueChange={(value) => setNewTemplate({...newTemplate, specialty: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Especialidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Cardiologia">Cardiologia</SelectItem>
-                        <SelectItem value="Psicologia">Psicologia</SelectItem>
-                        <SelectItem value="Nutrição">Nutrição</SelectItem>
-                        <SelectItem value="Fisioterapia">Fisioterapia</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <div className="md:col-span-2">
-                      <Textarea
-                        value={newTemplate.template}
-                        onChange={(e) => setNewTemplate({...newTemplate, template: e.target.value})}
-                        placeholder="Digite o template da anamnese..."
-                      />
-                    </div>
-                  </div>
-                  <Button onClick={handleAddTemplate} className="gap-2">
-                    <Save className="w-4 h-4" />
-                    Adicionar Template
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <Label>Templates Existentes</Label>
-                  {anamnesisTemplates.map((template) => (
-                    <div key={template.id} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary">{template.specialty}</Badge>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDeleteTemplate(template.id)}
-                        >
-                          Excluir
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{template.template}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
+                </Button>              </CardContent>
             </Card>
           </TabsContent>
 
@@ -436,8 +301,7 @@ const Settings = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          </TabsContent>
+            </Card>          </TabsContent>
         </Tabs>
       </div>
     </div>
