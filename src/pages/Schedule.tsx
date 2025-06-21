@@ -480,20 +480,38 @@ const Schedule = () => {
                       })}
                     </div>
                   </div>
-                )}
-
-                {viewMode === 'Semana' && (
+                )}                {viewMode === 'Semana' && (
                   <div className="border rounded-lg overflow-hidden">
                     <div className="grid grid-cols-8 border-b">
                       <div className="p-3 bg-muted/50 border-r">
                         <span className="text-sm font-medium">Horário</span>
                       </div>
-                      {weekDays.map((day, index) => (
-                        <div key={day} className="p-3 bg-muted/50 border-r text-center">
-                          <div className="text-sm font-medium">{day}</div>
-                          <div className="text-xs text-muted-foreground">{15 + index}/12</div>
-                        </div>
-                      ))}
+                      {weekDays.map((day, index) => {
+                        // Calcular a data real para cada dia da semana
+                        const weekStart = new Date(currentDate);
+                        weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+                        const dayDate = new Date(weekStart);
+                        dayDate.setDate(weekStart.getDate() + index);
+                        const isTodayWeek = isToday(dayDate);
+                        
+                        return (
+                          <div 
+                            key={day} 
+                            className={`p-3 border-r text-center transition-colors ${
+                              isTodayWeek 
+                                ? 'bg-primary/20 border-primary' 
+                                : 'bg-muted/50'
+                            }`}
+                          >
+                            <div className={`text-sm font-medium ${isTodayWeek ? 'text-primary font-bold' : ''}`}>
+                              {day}
+                            </div>
+                            <div className={`text-xs ${isTodayWeek ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                              {dayDate.getDate()}/{dayDate.getMonth() + 1}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                     
                     {daySchedule.map((hour) => (
