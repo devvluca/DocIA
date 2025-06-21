@@ -136,11 +136,11 @@ const Documents = () => {
         return <FileIcon className="w-8 h-8 text-gray-500" />;
     }
   };
-
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Documentos</h1>
           <p className="text-muted-foreground">Gerencie documentos e templates de anamnese</p>
@@ -379,10 +379,10 @@ const Documents = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          )}
+            </div>          )}
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 };

@@ -9,7 +9,8 @@ import {
   Moon, 
   Sun,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
@@ -18,10 +19,10 @@ const Navbar = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Calendar, label: 'Agenda', path: '/schedule' },
+    { icon: FileText, label: 'Documentos', path: '/documents' },
     { icon: Bot, label: 'Agentes IA', path: '/agents' },
     { icon: Settings, label: 'Configurações', path: '/settings' },
   ];

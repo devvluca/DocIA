@@ -12,6 +12,7 @@ import Schedule from "@/pages/Schedule";
 import Agents from "@/pages/Agents";
 import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
+import Documents from "@/pages/Documents";
 
 const queryClient = new QueryClient();
 
@@ -27,15 +28,18 @@ const App = () => {
         <BrowserRouter>
           <div className="min-h-screen bg-background">
             <Navbar />
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/schedule" element={<Schedule />} />
-              <Route path="/agents" element={<Agents />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/patients/:id" element={<PatientProfile />} />
-              <Route path="/chat/:id" element={<ChatIA />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <main>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/schedule" element={<Schedule />} />
+                <Route path="/agents" element={<Agents />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/patients/:id" element={<PatientProfile />} />
+                <Route path="/chat/:id" element={<ChatIA />} />
+                <Route path="/documents" element={<Documents />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
           </div>
         </BrowserRouter>
       </TooltipProvider>
