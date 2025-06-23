@@ -59,6 +59,7 @@ const Documents = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('documents');
 
   // Mock data para documentos
   const documents: Document[] = [
@@ -206,11 +207,47 @@ const Documents = () => {
       </div>
 
       {/* Content Tabs */}
-      <Tabs defaultValue="documents" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="documents">Documentos ({documents.length})</TabsTrigger>
-          <TabsTrigger value="templates">Templates ({templates.length})</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="relative">
+          <TabsList className="grid w-full grid-cols-2 relative bg-muted p-1 h-auto">
+            {/* Animated background slider */}
+            <div 
+              className={`absolute top-1 bottom-1 bg-background rounded-md shadow-sm transition-all duration-300 ease-in-out z-0 ${
+                activeTab === 'documents' 
+                  ? 'left-1 w-[calc(50%-4px)]' 
+                  : 'left-[50%] w-[calc(50%-4px)]'
+              }`}
+            />
+            
+            <TabsTrigger 
+              value="documents"
+              className={`flex items-center gap-2 relative z-10 transition-all duration-300 ${
+                activeTab === 'documents' 
+                  ? 'text-foreground shadow-none bg-transparent' 
+                  : 'text-muted-foreground bg-transparent hover:text-foreground'
+              }`}
+            >
+              <FileText className={`w-4 h-4 transition-transform duration-300 ${
+                activeTab === 'documents' ? 'scale-110' : 'scale-100'
+              }`} />
+              <span className="font-medium">Documentos ({documents.length})</span>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="templates"
+              className={`flex items-center gap-2 relative z-10 transition-all duration-300 ${
+                activeTab === 'templates' 
+                  ? 'text-foreground shadow-none bg-transparent' 
+                  : 'text-muted-foreground bg-transparent hover:text-foreground'
+              }`}
+            >
+              <FileText className={`w-4 h-4 transition-transform duration-300 ${
+                activeTab === 'templates' ? 'scale-110' : 'scale-100'
+              }`} />
+              <span className="font-medium">Templates ({templates.length})</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="documents" className="space-y-4">
           {/* Documents Grid */}
