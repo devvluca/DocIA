@@ -22,6 +22,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
@@ -140,11 +141,22 @@ const Settings = () => {
   const handleSaveProfile = () => {
     // Os dados já estão sendo salvos automaticamente no localStorage
     setIsProfileChanged(false);
-    alert('Perfil atualizado com sucesso!');
+    setModalState({
+      isOpen: true,
+      type: 'success',
+      title: 'Perfil Atualizado',
+      description: 'Suas informações pessoais foram salvas com sucesso!',
+      onConfirm: () => {}
+    });
   };
   const handleSaveNotifications = () => {
-    // Simulação de salvamento
-    alert('Configurações de notificação atualizadas!');
+    setModalState({
+      isOpen: true,
+      type: 'success',
+      title: 'Configurações Salvas',
+      description: 'Suas preferências de notificação foram atualizadas com sucesso!',
+      onConfirm: () => {}
+    });
   };
 
   // Função para iniciar o crop da imagem
@@ -444,6 +456,15 @@ const Settings = () => {
   const handleRemovePhoto = () => {
     handleProfileChange('avatar', null);
   };
+
+  // Estados para modais
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: 'info' as 'success' | 'warning' | 'info' | 'error',
+    title: '',
+    description: '',
+    onConfirm: () => {}
+  });
 
   return (
     <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
@@ -802,6 +823,18 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de Confirmação */}
+      <ConfirmationDialog
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        onConfirm={modalState.onConfirm}
+        title={modalState.title}
+        description={modalState.description}
+        type={modalState.type}
+        showCancel={false}
+        confirmText="OK"
+      />
 
       {/* Modal de Crop da Imagem */}
       <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>

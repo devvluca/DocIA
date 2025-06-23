@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bot, Plus, Upload, DollarSign, Search, Filter, Edit, MessageSquare } from 'lucide-react';
 import { Agent } from '@/types';
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 
 const mockAgents: Agent[] = [
 	{
@@ -53,6 +54,15 @@ const Agents = () => {
 		specialty: '',
 		description: '',
 		files: [] as string[],
+	});
+
+	// Estados para modais
+	const [modalState, setModalState] = useState({
+		isOpen: false,
+		type: 'info' as 'success' | 'warning' | 'info' | 'error',
+		title: '',
+		description: '',
+		onConfirm: () => {},
 	});
 
 	const mainSpecialties = [
@@ -111,16 +121,37 @@ const Agents = () => {
 		setAgents([...agents, agent]);
 		setNewAgent({ name: '', specialty: '', description: '', files: [] });
 		setIsCreateDialogOpen(false);
+
+		setModalState({
+			isOpen: true,
+			type: 'success',
+			title: 'Agente Criado',
+			description: `O agente "${agent.name}" foi criado com sucesso!`,
+			onConfirm: () => {},
+		});
 	};
 
 	const toggleSaleStatus = (agentId: string) => {
+		const agent = agents.find((a) => a.id === agentId);
+		const newStatus = !agent?.isForSale;
+
 		setAgents(
-			agents.map((agent) =>
-				agent.id === agentId
-					? { ...agent, isForSale: !agent.isForSale, price: agent.isForSale ? undefined : 199 }
-					: agent
+			agents.map((a) =>
+				a.id === agentId
+					? { ...a, isForSale: newStatus, price: newStatus ? 199 : undefined }
+					: a
 			)
 		);
+
+		setModalState({
+			isOpen: true,
+			type: 'success',
+			title: newStatus ? 'Agente Disponibilizado' : 'Agente Removido da Venda',
+			description: newStatus
+				? `O agente "${agent?.name}" foi colocado à venda com sucesso!`
+				: `O agente "${agent?.name}" foi removido da venda.`,
+			onConfirm: () => {},
+		});
 	};
 
 	const uniqueSpecialties = Array.from(new Set(agents.map((a) => a.specialty)));
@@ -452,6 +483,18 @@ const Agents = () => {
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Modal de Confirmação */}
+			<ConfirmationDialog
+				isOpen={modalState.isOpen}
+				onClose={() => setModalState({ ...modalState, isOpen: false })}
+				onConfirm={modalState.onConfirm}
+				title={modalState.title}
+				description={modalState.description}
+				type={modalState.type}
+				showCancel={false}
+				confirmText="OK"
+			/>
 		</div>
 	);
 };
