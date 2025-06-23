@@ -128,14 +128,53 @@ const Dashboard = () => {
     return colors[index];
   };
 
+  // Função para carregar perfil do usuário
+  const loadUserProfile = () => {
+    const saved = localStorage.getItem('userProfile');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      name: 'Dr. João Silva',
+      email: 'joao.silva@email.com',
+      specialty: 'Cardiologia',
+      crm: '12345-SP',
+      phone: '(11) 99999-9999',
+      bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.',
+      avatar: null,
+      avatarColor: 'bg-blue-500'
+    };
+  };
+
+  const [userProfile] = useState(loadUserProfile);
+
+  // Função para gerar iniciais ignorando "Dr."
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .filter(word => word.toLowerCase() !== 'dr.' && word.toLowerCase() !== 'dr')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
   return (
     <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta! Gerencie seus pacientes e acompanhe suas atividades.</p>
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10 lg:w-12 lg:h-12">
+              <AvatarImage src={userProfile.avatar} />
+              <AvatarFallback className={`${userProfile.avatarColor || 'bg-blue-500'} text-white text-sm lg:text-base`}>
+                {getInitials(userProfile.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta, {userProfile.name}!</p>
+            </div>
           </div>
           
           <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>

@@ -14,11 +14,43 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Função para carregar perfil do usuário
+  const loadUserProfile = () => {
+    const saved = localStorage.getItem('userProfile');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      name: 'Dr. João Silva',
+      email: 'joao.silva@email.com',
+      specialty: 'Cardiologia',
+      crm: '12345-SP',
+      phone: '(11) 99999-9999',
+      bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.',
+      avatar: null,
+      avatarColor: 'bg-blue-500'
+    };
+  };
+
+  // Função para gerar iniciais ignorando "Dr."
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .filter(word => word.toLowerCase() !== 'dr.' && word.toLowerCase() !== 'dr')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const [userProfile] = useState(loadUserProfile);
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/' },
     { icon: Calendar, label: 'Agenda', path: '/schedule' },
@@ -78,7 +110,7 @@ const Navbar = () => {
               alt="DocIA Logo" 
               className="w-12 h-12 object-contain"
             />
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-bold text-primary">DocIA</h1>
               <p className="text-sm text-muted-foreground">Sistema Médico</p>
             </div>
@@ -99,14 +131,22 @@ const Navbar = () => {
                 <p className="text-sm text-muted-foreground">Sistema Médico</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={closeMobileMenu}
-              className="p-2 lg:hidden"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={userProfile.avatar} />
+                <AvatarFallback className={`${userProfile.avatarColor || 'bg-blue-500'} text-white text-xs`}>
+                  {getInitials(userProfile.name)}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeMobileMenu}
+                className="p-2 lg:hidden"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
 
