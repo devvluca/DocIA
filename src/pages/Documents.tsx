@@ -33,6 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CreateTemplateForm from '@/components/documents/CreateTemplateForm';
 import DocumentUpload from '@/components/documents/DocumentUpload';
+import { useNavbar } from '@/contexts/NavbarContext';
 
 interface Document {
   id: string;
@@ -55,6 +56,7 @@ interface Template {
 }
 
 const Documents = () => {
+  const { isCollapsed } = useNavbar();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
@@ -136,9 +138,8 @@ const Documents = () => {
       default:
         return <FileIcon className="w-8 h-8 text-gray-500" />;
     }
-  };
-  return (
-    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+  };  return (
+    <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

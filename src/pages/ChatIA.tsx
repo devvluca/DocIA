@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useNavbar } from '@/contexts/NavbarContext';
 import { Badge } from '@/components/ui/badge';
 import { mockPatients } from '@/data/mockData';
 
@@ -24,6 +25,7 @@ interface Message {
 }
 
 const ChatIA = () => {
+  const { isCollapsed } = useNavbar();
   const { id } = useParams();
   const patient = mockPatients.find(p => p.id === id);
   const [messages, setMessages] = useState<Message[]>([
@@ -95,9 +97,8 @@ const ChatIA = () => {
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-background pl-64">
+    <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="h-screen flex flex-col">
         {/* Header */}
         <div className="border-b border-border p-4">

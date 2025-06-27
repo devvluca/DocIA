@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
+import { NavbarProvider } from "@/contexts/NavbarContext";
 import Navbar from "@/components/layout/Navbar";
 import Dashboard from "@/pages/Dashboard";
 import PatientProfile from "@/pages/PatientProfile";
@@ -13,8 +14,33 @@ import Agents from "@/pages/Agents";
 import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 import Documents from "@/pages/Documents";
+import Login from "@/pages/Login";
 
 const queryClient = new QueryClient();
+
+const AppContent = () => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+
+  return (
+    <div className="min-h-screen bg-background">
+      {!isLoginPage && <Navbar />}
+      <main>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/agents" element={<Agents />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/patients/:id" element={<PatientProfile />} />
+          <Route path="/chat/:id" element={<ChatIA />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+    </div>
+  );
+};
 
 const App = () => {
   // Initialize theme
@@ -26,21 +52,9 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen bg-background">
-            <Navbar />
-            <main>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/schedule" element={<Schedule />} />
-                <Route path="/agents" element={<Agents />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/patients/:id" element={<PatientProfile />} />
-                <Route path="/chat/:id" element={<ChatIA />} />
-                <Route path="/documents" element={<Documents />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-          </div>
+          <NavbarProvider>
+            <AppContent />
+          </NavbarProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

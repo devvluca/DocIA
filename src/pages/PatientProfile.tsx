@@ -21,8 +21,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { mockPatients } from '@/data/mockData';
+import { useNavbar } from '@/contexts/NavbarContext';
 
 const PatientProfile = () => {
+  const { isCollapsed } = useNavbar();
   const { id } = useParams();
   const patient = mockPatients.find(p => p.id === id);
   const [anamnesis, setAnamnesis] = useState(patient?.anamnesis || '');
@@ -100,9 +102,8 @@ const PatientProfile = () => {
     }
     setShowColorPicker(false);
   };
-
   return (
-    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+    <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bot, Plus, Upload, DollarSign, Search, Filter, Edit, MessageSquare } from 'lucide-react';
 import { Agent } from '@/types';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import { useNavbar } from '@/contexts/NavbarContext';
 
 const mockAgents: Agent[] = [
 	{
@@ -44,6 +45,7 @@ const mockAgents: Agent[] = [
 ];
 
 const Agents = () => {
+	const { isCollapsed } = useNavbar();
 	const [agents, setAgents] = useState<Agent[]>(mockAgents);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [filterSpecialty, setFilterSpecialty] = useState('all');
@@ -155,9 +157,8 @@ const Agents = () => {
 	};
 
 	const uniqueSpecialties = Array.from(new Set(agents.map((a) => a.specialty)));
-
 	return (
-		<div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+		<div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
 			<div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
 				{/* Header */}
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

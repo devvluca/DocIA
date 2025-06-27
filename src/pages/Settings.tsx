@@ -23,10 +23,12 @@ import {
   Check
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import { useNavbar } from '@/contexts/NavbarContext';
 import { toast } from 'sonner';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
+  const { isCollapsed } = useNavbar();
   const [activeTab, setActiveTab] = useState('profile');
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
@@ -453,9 +455,8 @@ const Settings = () => {
       duration: 3000,
     });
   };
-
   return (
-    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+    <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -79,4 +79,31 @@
   .chat-bubble-ai {
     @apply bg-muted text-foreground mr-auto max-w-xs lg:max-w-md rounded-lg rounded-bl-none p-3;
   }
+  /* Animações suaves para a navbar colapsável */
+  .navbar-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Tooltip para navbar colapsada */
+  .navbar-tooltip {
+    @apply absolute left-16 bg-popover text-popover-foreground px-2 py-1 rounded-md text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 border;
+  }
+
+  /* Navbar estilo moderno */
+  .navbar-item {
+    @apply relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group;
+  }
+
+  .navbar-item.active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  .navbar-item.active::before {
+    content: '';
+    @apply absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-primary rounded-l-full;
+  }
+
+  .navbar-item:not(.active) {
+    @apply text-muted-foreground hover:bg-accent/50 hover:text-foreground;
+  }
 }

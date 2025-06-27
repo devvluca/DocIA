@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Calendar, 
@@ -10,15 +10,20 @@ import {
   Sun,
   Menu,
   X,
-  FileText
+  FileText,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
+import { useNavbar } from '@/contexts/NavbarContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { isCollapsed, toggleCollapse } = useNavbar();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Função para carregar perfil do usuário
@@ -58,15 +63,23 @@ const Navbar = () => {
     { icon: Bot, label: 'Agentes IA', path: '/agents' },
     { icon: Settings, label: 'Configurações', path: '/settings' },
   ];
-
   const isActive = (path: string) => location.pathname === path;
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
+  const handleLogout = () => {
+    // Limpar dados do localStorage se necessário
+    // localStorage.removeItem('userProfile');
+    navigate('/login');
+  };
   return (
     <>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border h-16 flex items-center justify-between px-4">
+      {/* Adicionar variável CSS global para o padding das páginas */}      <style>{`
+        :root {
+          --navbar-width: ${isCollapsed ? '72px' : '264px'};
+        }
+      `}</style>{/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border/50 h-16 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <img 
             src="/img/docia_logo.png" 
@@ -74,7 +87,7 @@ const Navbar = () => {
             className="w-8 h-8 object-contain"
           />
           <div>
-            <h1 className="text-lg font-bold text-primary">DocIA</h1>
+            <h1 className="text-lg font-semibold text-foreground">DocIA</h1>
           </div>
         </div>
 
@@ -82,9 +95,9 @@ const Navbar = () => {
           variant="ghost"
           size="sm"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2"
+          className="p-2 hover:bg-accent/50"
         >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
       </div>
 
@@ -94,41 +107,55 @@ const Navbar = () => {
           className="lg:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
           onClick={closeMobileMenu}
         />
-      )}
-
-      {/* Desktop Sidebar / Mobile Slide Menu */}
+      )}      {/* Desktop Sidebar / Mobile Slide Menu */}
       <nav className={`
-        bg-card border-r border-border h-screen w-64 fixed left-0 top-0 flex flex-col z-50 transition-transform duration-300
+        bg-card/95 backdrop-blur-sm border-r border-border/50 h-screen fixed z-50 transition-all duration-300 ease-in-out
         lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Desktop Header */}
-        <div className="p-6 border-b border-border hidden lg:block">
+        ${isCollapsed ? 'lg:w-16' : 'lg:w-64'}
+        w-64
+      `} style={{ 
+        width: isCollapsed ? '64px' : '256px',
+        left: '8px',
+        top: '8px',
+        height: 'calc(100vh - 16px)',
+        borderRadius: '12px'
+      }}>{/* Desktop Header */}
+        <div className={`transition-all duration-300 border-b border-border/30 hidden lg:block ${isCollapsed ? 'p-3' : 'p-6'}`}>
           <div className="flex items-center gap-3">
             <img 
               src="/img/docia_logo.png" 
               alt="DocIA Logo" 
-              className="w-12 h-12 object-contain"
+              className={`object-contain transition-all duration-300 ${isCollapsed ? 'w-10 h-10' : 'w-12 h-12'}`}
             />
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-primary">DocIA</h1>
-              <p className="text-sm text-muted-foreground">Sistema Médico</p>
-            </div>
+            {!isCollapsed && (
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold text-foreground">DocIA</h1>
+                <p className="text-xs text-muted-foreground">Sistema Médico</p>
+              </div>
+            )}            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleCollapse}
+              className="p-2 hidden lg:flex hover:bg-accent/50 rounded-full transition-all duration-200 group"
+            >
+              <div className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}>
+                <ChevronLeft className="w-4 h-4" />
+              </div>
+            </Button>
           </div>
-        </div>
-
-        {/* Mobile Header in Sidebar */}
-        <div className="p-6 border-b border-border lg:hidden">
+        </div>        {/* Mobile Header in Sidebar */}
+        <div className="p-4 border-b border-border/30 lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
                 src="/img/docia_logo.png" 
                 alt="DocIA Logo" 
-                className="w-10 h-10 object-contain"
+                className="w-9 h-9 object-contain"
               />
               <div>
-                <h1 className="text-lg font-bold text-primary">DocIA</h1>
-                <p className="text-sm text-muted-foreground">Sistema Médico</p>
+                <h1 className="text-lg font-semibold text-foreground">DocIA</h1>
+                <p className="text-xs text-muted-foreground">Sistema Médico</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -142,53 +169,78 @@ const Navbar = () => {
                 variant="ghost"
                 size="sm"
                 onClick={closeMobileMenu}
-                className="p-2 lg:hidden"
+                className="p-2 lg:hidden hover:bg-accent/50"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
-        </div>
-
-        <div className="flex-1 p-4">
-          <ul className="space-y-2">
+        </div><div className={`flex-1 transition-all duration-300 ${isCollapsed ? 'py-4 px-2' : 'py-6 px-4'}`}>
+          <ul className={`space-y-1 ${isCollapsed ? '' : ''}`}>
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   onClick={closeMobileMenu}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
                     isActive(item.path)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  }`}
+                      ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                      : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                  } ${isCollapsed ? 'lg:justify-center lg:px-2' : ''}`}
+                  title={isCollapsed ? item.label : undefined}
                 >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <item.icon className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+                  <span className={`font-medium text-sm transition-all duration-300 ${isCollapsed ? 'lg:hidden' : ''}`}>
+                    {item.label}
+                  </span>
+                  {/* Tooltip para modo colapsado */}
+                  {isCollapsed && (
+                    <div className="absolute left-14 bg-popover text-popover-foreground px-2 py-1 rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none hidden lg:block z-50 border shadow-lg">
+                      {item.label}
+                    </div>
+                  )}
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="p-4 border-t border-border space-y-2">
-          <Button
-            variant="outline"
+        </div>        <div className={`border-t border-border/30 space-y-2 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-4'}`}>          <Button
+            variant="ghost"
             size="sm"
             onClick={toggleTheme}
-            className="w-full justify-start gap-3"
+            className={`w-full gap-3 transition-all duration-300 hover:bg-accent/50 group ${
+              isCollapsed ? 'lg:justify-center lg:px-2 lg:h-10' : 'justify-start h-9'
+            }`}
+            title={isCollapsed ? (theme === 'dark' ? 'Modo Claro' : 'Modo Escuro') : undefined}
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+            <div className="relative w-4 h-4 flex items-center justify-center">
+              <Sun className={`absolute w-4 h-4 transition-all duration-500 transform ${
+                theme === 'dark' 
+                  ? 'opacity-0 scale-0 rotate-90' 
+                  : 'opacity-100 scale-100 rotate-0'
+              }`} />
+              <Moon className={`absolute w-4 h-4 transition-all duration-500 transform ${
+                theme === 'dark' 
+                  ? 'opacity-100 scale-100 rotate-0' 
+                  : 'opacity-0 scale-0 -rotate-90'
+              }`} />
+            </div>
+            <span className={`transition-all duration-300 text-xs font-medium ${isCollapsed ? 'lg:hidden' : ''}`}>
+              {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+            </span>
           </Button>
-          
-          <Button
-            variant="outline"
+            <Button
+            variant="ghost"
             size="sm"
-            className="w-full justify-start gap-3 text-destructive hover:text-destructive"
+            onClick={handleLogout}
+            className={`w-full gap-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-300 ${
+              isCollapsed ? 'lg:justify-center lg:px-2 lg:h-10' : 'justify-start h-9'
+            }`}
+            title={isCollapsed ? 'Sair' : undefined}
           >
-            <LogOut className="w-4 h-4" />
-            Sair
+            <LogOut className={`flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-4 h-4' : 'w-4 h-4'}`} />
+            <span className={`transition-all duration-300 text-xs font-medium ${isCollapsed ? 'lg:hidden' : ''}`}>
+              Sair
+            </span>
           </Button>
         </div>
       </nav>

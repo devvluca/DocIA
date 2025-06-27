@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useNavbar } from '@/contexts/NavbarContext';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import PatientCard from '@/components/layout/PatientCard';
 import { mockPatients, mockAppointments } from '@/data/mockData';
@@ -15,6 +16,11 @@ import { Link } from 'react-router-dom';
 import AddPatientDialog from '@/components/dialogs/AddPatientDialog';
 
 const Dashboard = () => {
+  const { isCollapsed } = useNavbar();
+  
+  // Debug para verificar se o estado está mudando
+  console.log('Dashboard - isCollapsed:', isCollapsed);
+  
   const [patients, setPatients] = useState<Patient[]>(mockPatients);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCondition, setFilterCondition] = useState('all');
@@ -158,9 +164,8 @@ const Dashboard = () => {
       .substring(0, 2)
       .toUpperCase();
   };
-
   return (
-    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+    <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -10,8 +10,10 @@ import { Calendar, Plus, Clock, User, ChevronLeft, ChevronRight, MessageSquare, 
 import { Appointment } from '@/types';
 import { mockPatients, mockAppointments } from '@/data/mockData';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import { useNavbar } from '@/contexts/NavbarContext';
 
 const Schedule = () => {
+  const { isCollapsed } = useNavbar();
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -522,9 +524,8 @@ const Schedule = () => {
       }
     });
   };
-
   return (
-    <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
+    <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
