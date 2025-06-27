@@ -19,10 +19,11 @@ import {
   Save,
   Upload,
   Crop,
-  RotateCcw
+  RotateCcw,
+  Check
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
-import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import { toast } from 'sonner';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
@@ -137,25 +138,17 @@ const Settings = () => {
     whatsappAlerts: true,
     systemUpdates: false,
     appointmentConfirmations: true
-  });
-  const handleSaveProfile = () => {
+  });  const handleSaveProfile = () => {
     // Os dados já estão sendo salvos automaticamente no localStorage
     setIsProfileChanged(false);
-    setModalState({
-      isOpen: true,
-      type: 'success',
-      title: 'Perfil Atualizado',
-      description: 'Suas informações pessoais foram salvas com sucesso!',
-      onConfirm: () => {}
+    toast.success('Alteração feita com sucesso!', {
+      position: 'bottom-center',
+      duration: 3000,
     });
-  };
-  const handleSaveNotifications = () => {
-    setModalState({
-      isOpen: true,
-      type: 'success',
-      title: 'Configurações Salvas',
-      description: 'Suas preferências de notificação foram atualizadas com sucesso!',
-      onConfirm: () => {}
+  };  const handleSaveNotifications = () => {
+    toast.success('Configurações de notificação salvas!', {
+      position: 'bottom-center',
+      duration: 3000,
     });
   };
 
@@ -296,13 +289,15 @@ const Settings = () => {
       );
       
       ctx.restore();
-      
-      // Converter para base64
+        // Converter para base64
       const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      handleProfileChange('avatar', croppedDataUrl);
-      setIsCropModalOpen(false);
+      handleProfileChange('avatar', croppedDataUrl);      setIsCropModalOpen(false);
       setCropImage(null);
       setImageLoaded(false);
+      toast.success('Foto atualizada com sucesso!', {
+        position: 'bottom-center',
+        duration: 3000,
+      });
     };
     
     // Usar a imagem original
@@ -451,20 +446,13 @@ const Settings = () => {
       .map(word => word.charAt(0).toUpperCase())
       .slice(0, 2)
       .join('');
-  };
-
-  const handleRemovePhoto = () => {
+  };  const handleRemovePhoto = () => {
     handleProfileChange('avatar', null);
+    toast.success('Foto removida com sucesso!', {
+      position: 'bottom-center',
+      duration: 3000,
+    });
   };
-
-  // Estados para modais
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    type: 'info' as 'success' | 'warning' | 'info' | 'error',
-    title: '',
-    description: '',
-    onConfirm: () => {}
-  });
 
   return (
     <div className="min-h-screen bg-background lg:pl-64 pt-16 lg:pt-0">
@@ -475,14 +463,12 @@ const Settings = () => {
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Configurações</h1>
             <p className="text-muted-foreground text-sm lg:text-base">Gerencie suas preferências e configurações do sistema</p>
           </div>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 lg:space-y-6">
+        </div>        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 lg:space-y-6">
           <div className="relative">
-            <TabsList className="grid w-full grid-cols-3 relative bg-muted p-1 h-auto">
+            <TabsList className="grid w-full grid-cols-3 relative muted-gradient p-1 h-auto shadow-sm">
               {/* Animated background slider */}
               <div 
-                className={`absolute top-1 bottom-1 bg-background rounded-md shadow-sm transition-all duration-300 ease-in-out z-0 ${
+                className={`absolute top-1 bottom-1 card-gradient rounded-md shadow-sm transition-all duration-300 ease-in-out z-0 ${
                   activeTab === 'profile' 
                     ? 'left-1 w-[calc(33.333%-4px)]' 
                     : activeTab === 'notifications' 
@@ -533,11 +519,9 @@ const Settings = () => {
                 <span className="font-medium">Segurança</span>
               </TabsTrigger>
             </TabsList>
-          </div>
-
-          {/* Perfil */}
+          </div>          {/* Perfil */}
           <TabsContent value="profile">
-            <Card className="min-h-[600px]">
+            <Card className="min-h-[600px] card-gradient shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
@@ -590,20 +574,20 @@ const Settings = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">Nome Completo</Label>
-                    <Input
+                    <Label htmlFor="name">Nome Completo</Label>                    <Input
                       id="name"
                       value={userProfile.name}
                       onChange={(e) => handleProfileChange('name', e.target.value)}
+                      className="input-enhanced"
                     />
-                  </div>
-                  <div>
+                  </div>                  <div>
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={userProfile.email}
                       onChange={(e) => handleProfileChange('email', e.target.value)}
+                      className="input-enhanced"
                     />
                   </div>
                   <div>
@@ -656,45 +640,41 @@ const Settings = () => {
                   )}
                   
                   <div>
-                    <Label htmlFor="crm">{getRegistrationLabel(userProfile.specialty)}</Label>
-                    <Input
+                    <Label htmlFor="crm">{getRegistrationLabel(userProfile.specialty)}</Label>                    <Input
                       id="crm"
                       value={userProfile.crm}
                       onChange={(e) => handleProfileChange('crm', e.target.value)}
                       placeholder={`Ex: ${getRegistrationLabel(userProfile.specialty)} 12345-SP`}
+                      className="input-enhanced"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Telefone</Label>
-                    <Input
+                    <Label htmlFor="phone">Telefone</Label>                    <Input
                       id="phone"
                       value={userProfile.phone}
                       onChange={(e) => handleProfileChange('phone', e.target.value)}
+                      className="input-enhanced"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="bio">Biografia</Label>
-                  <Textarea
+                  <Label htmlFor="bio">Biografia</Label>                  <Textarea
                     id="bio"
                     value={userProfile.bio}
                     onChange={(e) => handleProfileChange('bio', e.target.value)}
                     placeholder="Descreva sua experiência profissional..."
+                    className="input-enhanced min-h-24"
                   />
-                </div>
-
-                <Button onClick={handleSaveProfile} className="gap-2">
-                  <Save className="w-4 h-4" />
+                </div>                <Button onClick={handleSaveProfile} className="gap-2 medical-gradient">
+                  <Check className="w-4 h-4" />
                   Salvar Alterações
                 </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Notificações */}
+          </TabsContent>          {/* Notificações */}
           <TabsContent value="notifications">
-            <Card className="min-h-[600px]">
+            <Card className="min-h-[600px] card-gradient shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5" />
@@ -758,19 +738,16 @@ const Settings = () => {
                   </div>
                 </div>
 
-                <div className="mt-auto pt-6">
-                  <Button onClick={handleSaveNotifications} className="gap-2">
+                <div className="mt-auto pt-6">                  <Button onClick={handleSaveNotifications} className="gap-2 medical-gradient">
                     <Save className="w-4 h-4" />
                     Salvar Preferências
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Segurança */}
+          </TabsContent>          {/* Segurança */}
           <TabsContent value="security">
-            <Card className="min-h-[600px]">
+            <Card className="min-h-[600px] card-gradient shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />
@@ -780,12 +757,11 @@ const Settings = () => {
               <CardContent className="space-y-6 h-full flex flex-col">
                 <div className="flex-1 space-y-6">
                   <div>
-                    <Label>Alterar Senha</Label>
-                    <div className="space-y-4 mt-2">
-                      <Input type="password" placeholder="Senha atual" />
-                      <Input type="password" placeholder="Nova senha" />
-                      <Input type="password" placeholder="Confirmar nova senha" />
-                      <Button>Alterar Senha</Button>
+                    <Label>Alterar Senha</Label>                    <div className="space-y-4 mt-2">
+                      <Input type="password" placeholder="Senha atual" className="input-enhanced" />
+                      <Input type="password" placeholder="Nova senha" className="input-enhanced" />
+                      <Input type="password" placeholder="Confirmar nova senha" className="input-enhanced" />
+                      <Button className="medical-gradient">Alterar Senha</Button>
                     </div>
                   </div>
 
@@ -821,20 +797,7 @@ const Settings = () => {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Modal de Confirmação */}
-      <ConfirmationDialog
-        isOpen={modalState.isOpen}
-        onClose={() => setModalState({ ...modalState, isOpen: false })}
-        onConfirm={modalState.onConfirm}
-        title={modalState.title}
-        description={modalState.description}
-        type={modalState.type}
-        showCancel={false}
-        confirmText="OK"
-      />
+        </Tabs>      </div>
 
       {/* Modal de Crop da Imagem */}
       <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
