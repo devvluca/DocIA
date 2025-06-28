@@ -4,13 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Eye, EyeOff, Stethoscope, UserPlus, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Stethoscope, UserPlus, Mail, Lock, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -31,6 +34,7 @@ const Login = () => {
     setTimeout(() => {
       if (formData.email === 'medico@docia.com' && formData.password === '123456') {
         toast.success('Login realizado com sucesso!');
+        login(); // Usar o contexto de autenticação
         navigate('/');
       } else {
         toast.error('Credenciais inválidas. Tente: medico@docia.com / 123456');
@@ -200,9 +204,27 @@ const Login = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" />
-                    <span className="text-muted-foreground">Lembrar de mim</span>
+                  <label className="flex items-center space-x-3 cursor-pointer group">
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <div className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
+                        rememberMe 
+                          ? 'bg-blue-600 border-blue-600' 
+                          : 'border-border hover:border-blue-300'
+                      }`}>
+                        {rememberMe && (
+                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                      Lembrar de mim
+                    </span>
                   </label>
                   <button
                     type="button"
@@ -233,7 +255,10 @@ const Login = () => {
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <UserPlus className="w-4 h-4" />
               <span>Não tem uma conta?</span>
-              <button className="text-primary hover:text-primary/80 font-medium transition-colors">
+              <button 
+                className="text-primary hover:text-primary/80 font-medium transition-colors"
+                onClick={() => navigate('/register')}
+              >
                 Crie sua conta grátis
               </button>
             </div>

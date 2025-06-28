@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 import { NavbarProvider } from "@/contexts/NavbarContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/layout/Navbar";
 import Dashboard from "@/pages/Dashboard";
 import PatientProfile from "@/pages/PatientProfile";
@@ -15,26 +17,56 @@ import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 import Documents from "@/pages/Documents";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <div className="min-h-screen bg-background">
-      {!isLoginPage && <Navbar />}
+      {!isAuthPage && <Navbar />}
       <main>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/agents" element={<Agents />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/patients/:id" element={<PatientProfile />} />
-          <Route path="/chat/:id" element={<ChatIA />} />
-          <Route path="/documents" element={<Documents />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/schedule" element={
+            <ProtectedRoute>
+              <Schedule />
+            </ProtectedRoute>
+          } />
+          <Route path="/agents" element={
+            <ProtectedRoute>
+              <Agents />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/patients/:id" element={
+            <ProtectedRoute>
+              <PatientProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="/chat/:id" element={
+            <ProtectedRoute>
+              <ChatIA />
+            </ProtectedRoute>
+          } />
+          <Route path="/documents" element={
+            <ProtectedRoute>
+              <Documents />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -52,9 +84,11 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <NavbarProvider>
-            <AppContent />
-          </NavbarProvider>
+          <AuthProvider>
+            <NavbarProvider>
+              <AppContent />
+            </NavbarProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

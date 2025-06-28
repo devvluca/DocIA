@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useNavbar } from '@/contexts/NavbarContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
@@ -24,6 +25,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { isCollapsed, toggleCollapse } = useNavbar();
+  const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Função para carregar perfil do usuário
@@ -68,8 +70,7 @@ const Navbar = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const handleLogout = () => {
-    // Limpar dados do localStorage se necessário
-    // localStorage.removeItem('userProfile');
+    logout(); // Usar o contexto de autenticação
     navigate('/login');
   };
   return (
