@@ -12,6 +12,13 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { MessageSquare, FileText, MoreVertical, Edit, Trash2, Eye, EyeOff, Phone, Mail } from 'lucide-react';
 
 interface PatientCardProps {
@@ -21,6 +28,7 @@ interface PatientCardProps {
 
 const PatientCard: React.FC<PatientCardProps> = ({ patient, onEdit }) => {
   const [showContactInfo, setShowContactInfo] = useState(false);
+  const [isAnamnesisOpen, setIsAnamnesisOpen] = useState(false);
 
   const getAvatarColor = (patientId: string) => {
     const colors = [
@@ -167,17 +175,73 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onEdit }) => {
               <MessageSquare className="w-4 h-4" />
             </Link>
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-accent" 
-            asChild
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Link to={`/patients/${patient.id}/anamnesis`}>
-              <FileText className="w-4 h-4" />
-            </Link>
-          </Button>
+          
+          <Dialog open={isAnamnesisOpen} onOpenChange={setIsAnamnesisOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-accent" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsAnamnesisOpen(true);
+                }}
+              >
+                <FileText className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Anamnese - {patient.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Idade</p>
+                    <p className="text-base">{patient.age} anos</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Gênero</p>
+                    <p className="text-base">{patient.gender === 'M' ? 'Masculino' : 'Feminino'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Condição Principal</p>
+                    <p className="text-base">{patient.condition}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Última Visita</p>
+                    <p className="text-base">{patient.lastVisit}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Histórico Clínico</h3>
+                  <div className="p-4 border rounded-lg bg-background">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {patient.anamnesis || 'Nenhuma anamnese registrada para este paciente.'}
+                    </p>
+                  </div>
+                </div>
+
+                {patient.tags && patient.tags.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {patient.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardContent>
     </Card>

@@ -38,7 +38,7 @@ const Schedule = () => {
   const [newCalendarModal, setNewCalendarModal] = useState({
     isOpen: false,
     calendarName: '',
-    calendarColor: 'bg-blue-500'
+    calendarColor: 'bg-blue-400'
   });
 
   const [blockDatesModal, setBlockDatesModal] = useState({
@@ -139,10 +139,10 @@ const Schedule = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-500';
-      case 'completed': return 'bg-green-500';
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'scheduled': return 'bg-blue-400';
+      case 'completed': return 'bg-emerald-400';
+      case 'cancelled': return 'bg-red-400';
+      default: return 'bg-gray-400';
     }
   };
 
@@ -207,7 +207,7 @@ const Schedule = () => {
         description: `Calendário "${newCalendarModal.calendarName}" foi criado com sucesso!`,
         onConfirm: () => {}
       });
-      setNewCalendarModal({ isOpen: false, calendarName: '', calendarColor: 'bg-blue-500' });
+      setNewCalendarModal({ isOpen: false, calendarName: '', calendarColor: 'bg-blue-400' });
     }
   };
 
@@ -306,7 +306,7 @@ const Schedule = () => {
       phone: '(11) 99999-9999',
       bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.',
       avatar: null,
-      avatarColor: 'bg-blue-500'
+      avatarColor: 'bg-blue-400'
     };
   };
 
@@ -325,17 +325,17 @@ const Schedule = () => {
 
     // Tipos comuns para todas as especialidades
     const commonTypes = {
-      'Primeira Consulta': { color: 'bg-green-500', border: 'border-green-500', text: 'text-green-700' },
-      'Retorno': { color: 'bg-blue-500', border: 'border-blue-500', text: 'text-blue-700' },
-      'Urgência': { color: 'bg-red-500', border: 'border-red-500', text: 'text-red-700' },
-      'Telemedicina': { color: 'bg-purple-500', border: 'border-purple-500', text: 'text-purple-700' },
+      'Primeira Consulta': { color: 'bg-indigo-500', border: 'border-indigo-500', text: 'text-indigo-700' },
+      'Retorno': { color: 'bg-blue-400', border: 'border-blue-400', text: 'text-blue-600' },
+      'Urgência': { color: 'bg-red-400', border: 'border-red-400', text: 'text-red-600' },
+      'Telemedicina': { color: 'bg-indigo-400', border: 'border-indigo-400', text: 'text-indigo-600' },
     };
 
     if (medicalSpecialties.includes(specialty)) {
       return {
         ...commonTypes,
-        'Exame Clínico': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-        'Procedimento': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
+        'Exame Clínico': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+        'Procedimento': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
       };
     }
 
@@ -343,88 +343,88 @@ const Schedule = () => {
       case 'Nutricionista':
         return {
           ...commonTypes,
-          'Avaliação Nutricional': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Orientação Dietética': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Acompanhamento': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Avaliação Nutricional': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Orientação Dietética': { color: 'bg-lime-400', border: 'border-lime-400', text: 'text-lime-600' },
+          'Acompanhamento': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Fisioterapeuta':
         return {
           ...commonTypes,
-          'Avaliação Fisioterapêutica': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Sessão de Fisioterapia': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Reavaliação': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Avaliação Fisioterapêutica': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Sessão de Fisioterapia': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
+          'Reavaliação': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Psicólogo':
         return {
           ...commonTypes,
-          'Avaliação Psicológica': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Psicoterapia': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Terapia de Grupo': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Avaliação Psicológica': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Psicoterapia': { color: 'bg-violet-400', border: 'border-violet-400', text: 'text-violet-600' },
+          'Terapia de Grupo': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Cirurgião Dentista':
         return {
           ...commonTypes,
-          'Avaliação Odontológica': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Procedimento Cirúrgico': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Limpeza': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Avaliação Odontológica': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Procedimento Cirúrgico': { color: 'bg-rose-400', border: 'border-rose-400', text: 'text-rose-600' },
+          'Limpeza': { color: 'bg-cyan-400', border: 'border-cyan-400', text: 'text-cyan-600' },
         };
 
       case 'Enfermeiro':
         return {
           ...commonTypes,
-          'Consulta de Enfermagem': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Procedimento': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Acompanhamento': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Consulta de Enfermagem': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Procedimento': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
+          'Acompanhamento': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Farmacêutico':
         return {
           ...commonTypes,
-          'Atenção Farmacêutica': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Orientação Medicamentosa': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Seguimento Farmacoterapêutico': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Atenção Farmacêutica': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Orientação Medicamentosa': { color: 'bg-lime-400', border: 'border-lime-400', text: 'text-lime-600' },
+          'Seguimento Farmacoterapêutico': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Fonoaudiólogo':
         return {
           ...commonTypes,
-          'Avaliação Fonoaudiológica': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Terapia Fonoaudiológica': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Audiometria': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Avaliação Fonoaudiológica': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Terapia Fonoaudiológica': { color: 'bg-violet-400', border: 'border-violet-400', text: 'text-violet-600' },
+          'Audiometria': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Terapeuta Ocupacional':
         return {
           ...commonTypes,
-          'Avaliação TO': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Terapia Ocupacional': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Adaptação': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Avaliação TO': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Terapia Ocupacional': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
+          'Adaptação': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Biomédico':
         return {
           ...commonTypes,
-          'Análise Clínica': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Coleta de Exames': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Interpretação de Resultados': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Análise Clínica': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Coleta de Exames': { color: 'bg-sky-400', border: 'border-sky-400', text: 'text-sky-600' },
+          'Interpretação de Resultados': { color: 'bg-teal-400', border: 'border-teal-400', text: 'text-teal-600' },
         };
 
       case 'Veterinário':
         return {
           ...commonTypes,
-          'Consulta Veterinária': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Cirurgia Veterinária': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
-          'Vacinação': { color: 'bg-cyan-500', border: 'border-cyan-500', text: 'text-cyan-700' },
+          'Consulta Veterinária': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Cirurgia Veterinária': { color: 'bg-rose-400', border: 'border-rose-400', text: 'text-rose-600' },
+          'Vacinação': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
         };
 
       default:
         return {
           ...commonTypes,
-          'Consulta Especializada': { color: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-700' },
-          'Procedimento': { color: 'bg-yellow-500', border: 'border-yellow-500', text: 'text-yellow-700' },
+          'Consulta Especializada': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
+          'Procedimento': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
         };
     }
   };
@@ -435,28 +435,28 @@ const Schedule = () => {
   const appointmentStatus = {
     'scheduled': { 
       text: 'Agendada', 
-      color: 'bg-blue-500', 
-      border: 'border-blue-500' 
+      color: 'bg-blue-400', 
+      border: 'border-blue-400' 
     },
     'completed': { 
       text: 'Concluída', 
-      color: 'bg-green-500', 
-      border: 'border-green-500' 
+      color: 'bg-emerald-400', 
+      border: 'border-emerald-400' 
     },
     'cancelled': { 
       text: 'Cancelada', 
-      color: 'bg-red-500', 
-      border: 'border-red-500' 
+      color: 'bg-red-400', 
+      border: 'border-red-400' 
     },
     'confirmed': { 
       text: 'Confirmada', 
-      color: 'bg-emerald-500', 
-      border: 'border-emerald-500' 
+      color: 'bg-green-400', 
+      border: 'border-green-400' 
     },
     'no-show': { 
       text: 'Não compareceu', 
-      color: 'bg-gray-500', 
-      border: 'border-gray-500' 
+      color: 'bg-gray-400', 
+      border: 'border-gray-400' 
     }
   };
 
@@ -590,7 +590,7 @@ const Schedule = () => {
                         {Object.keys(appointmentTypes).map((type) => (
                           <SelectItem key={type} value={type}>
                             <div className="flex items-center gap-2">
-                              <div className={`w-3 h-3 rounded ${appointmentTypes[type].color}`} />
+                              <div className={`w-3 h-3 rounded ${(appointmentTypes[type] || { color: 'bg-gray-400' }).color}`} />
                               {type}
                             </div>
                           </SelectItem>
@@ -697,7 +697,7 @@ const Schedule = () => {
                           </div>
                           <div className="space-y-1">
                             {dayAppointments.slice(0, 3).map((apt, i) => {
-                              const typeConfig = appointmentTypes[apt.type] || appointmentTypes['Presencial'];
+                              const typeConfig = appointmentTypes[apt.type] || appointmentTypes['Primeira Consulta'] || { color: 'bg-slate-400', border: 'border-slate-400', text: 'text-slate-600' };
                               const statusConfig = appointmentStatus[apt.status] || appointmentStatus['scheduled'];
                               
                               return (
@@ -843,7 +843,7 @@ const Schedule = () => {
                                   {Object.keys(appointmentTypes).map((type) => (
                                     <SelectItem key={type} value={type}>
                                       <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded ${appointmentTypes[type].color}`} />
+                                        <div className={`w-3 h-3 rounded ${(appointmentTypes[type] || { color: 'bg-gray-400' }).color}`} />
                                         {type}
                                       </div>
                                     </SelectItem>
@@ -870,12 +870,12 @@ const Schedule = () => {
                   ) : (
                     <div className="space-y-3">
                       {selectedDayAppointments.map((appointment, index) => {
-                        const typeConfig = appointmentTypes[appointment.type] || appointmentTypes['Presencial'];
+                        const typeConfig = appointmentTypes[appointment.type] || appointmentTypes['Primeira Consulta'] || { color: 'bg-slate-400', border: 'border-slate-400', text: 'text-slate-600' };
                         
                         return (
                           <div 
                             key={appointment.id} 
-                            className={`p-4 rounded-lg border-l-4 ${typeConfig.color} bg-card hover:bg-accent/50 transition-colors cursor-pointer`}
+                            className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                           >
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-3">
@@ -883,8 +883,11 @@ const Schedule = () => {
                                   <Clock className="w-4 h-4 text-muted-foreground" />
                                   <span className="font-semibold text-lg">{appointment.time}</span>
                                 </div>
-                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${typeConfig.color} text-white`}>
-                                  {appointment.type}
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-3 h-3 rounded-full ${typeConfig.color}`} />
+                                  <span className="text-sm font-medium text-muted-foreground">
+                                    {appointment.type}
+                                  </span>
                                 </div>
                               </div>
                               <Badge variant="outline" className="text-xs">
@@ -1226,10 +1229,10 @@ const Schedule = () => {
               <Label htmlFor="calendar-color">Cor do Calendário</Label>
               <div className="grid grid-cols-6 gap-2 mt-2">
                 {[
-                  'bg-blue-500', 'bg-green-500', 'bg-red-500', 
-                  'bg-yellow-500', 'bg-purple-500', 'bg-pink-500',
-                  'bg-indigo-500', 'bg-teal-500', 'bg-orange-500',
-                  'bg-cyan-500', 'bg-emerald-500', 'bg-rose-500'
+                  'bg-blue-400', 'bg-emerald-400', 'bg-red-400', 
+                  'bg-amber-400', 'bg-violet-400', 'bg-pink-400',
+                  'bg-indigo-400', 'bg-teal-400', 'bg-orange-400',
+                  'bg-cyan-400', 'bg-lime-400', 'bg-rose-400'
                 ].map((color) => (
                   <button
                     key={color}
@@ -1252,7 +1255,7 @@ const Schedule = () => {
           <div className="flex gap-3 pt-4">
             <Button 
               variant="outline" 
-              onClick={() => setNewCalendarModal({ isOpen: false, calendarName: '', calendarColor: 'bg-blue-500' })}
+              onClick={() => setNewCalendarModal({ isOpen: false, calendarName: '', calendarColor: 'bg-blue-400' })}
               className="flex-1"
             >
               Cancelar

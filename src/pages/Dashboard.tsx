@@ -78,7 +78,7 @@ const Dashboard = () => {
   });
 
   const uniqueConditions = Array.from(new Set(patients.map(p => p.condition)));
-  const todayAppointments = mockAppointments.filter(apt => apt.date === '2024-06-20');
+  const todayAppointments = mockAppointments.filter(apt => apt.date === '2025-06-29');
 
   const handleAddPatient = (newPatient: Omit<Patient, 'id' | 'createdAt'>) => {
     const patient: Patient = {

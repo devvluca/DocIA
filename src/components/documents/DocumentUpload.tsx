@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface DocumentUploadProps {
   onClose: () => void;
+  onUpload?: (files: File[]) => void;
 }
 
 interface UploadFile {
@@ -25,7 +26,7 @@ interface UploadFile {
   error?: string;
 }
 
-const DocumentUpload: React.FC<DocumentUploadProps> = ({ onClose }) => {
+const DocumentUpload: React.FC<DocumentUploadProps> = ({ onClose, onUpload }) => {
   const [selectedFiles, setSelectedFiles] = useState<UploadFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [category, setCategory] = useState('');
@@ -103,11 +104,18 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onClose }) => {
       return;
     }
 
-    selectedFiles.forEach((_, index) => {
-      if (selectedFiles[index].status === 'pending') {
-        simulateUpload(index);
-      }
-    });
+    const filesToUpload = selectedFiles.map(item => item.file);
+    
+    if (onUpload) {
+      onUpload(filesToUpload);
+    } else {
+      // Fallback para simulação se onUpload não estiver definido
+      selectedFiles.forEach((_, index) => {
+        if (selectedFiles[index].status === 'pending') {
+          simulateUpload(index);
+        }
+      });
+    }
   };
 
   const formatFileSize = (bytes: number) => {
