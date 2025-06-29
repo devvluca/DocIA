@@ -72,17 +72,23 @@ const Register = () => {
     
     // Validações
     if (formData.password !== formData.confirmPassword) {
-      toast.error('As senhas não coincidem');
+      toast.error('As senhas não coincidem', {
+        duration: 3000,
+      });
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      toast.error('A senha deve ter pelo menos 6 caracteres', {
+        duration: 3000,
+      });
       return;
     }
 
     if (!acceptTerms) {
-      toast.error('Você deve aceitar os termos de uso');
+      toast.error('Você deve aceitar os termos de uso', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -90,7 +96,9 @@ const Register = () => {
 
     // Simular cadastro
     setTimeout(() => {
-      toast.success('Cadastro realizado com sucesso! Agora você pode fazer login.');
+      toast.success('Cadastro realizado com sucesso! Agora você pode fazer login.', {
+        duration: 3000,
+      });
       navigate('/login');
       setIsLoading(false);
     }, 2000);

@@ -444,7 +444,7 @@ const Settings = () => {
     
     return name
       .split(' ')
-      .filter(word => word.length > 0)
+      .filter(word => word.length > 0 && word.toLowerCase() !== 'dr.' && word.toLowerCase() !== 'dr')
       .map(word => word.charAt(0).toUpperCase())
       .slice(0, 2)
       .join('');
@@ -466,10 +466,10 @@ const Settings = () => {
           </div>
         </div>        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 lg:space-y-6">
           <div className="relative">
-            <TabsList className="grid w-full grid-cols-3 relative muted-gradient p-1 h-auto shadow-sm">
+            <TabsList className="grid w-full grid-cols-3 relative bg-muted p-1 h-auto">
               {/* Animated background slider */}
               <div 
-                className={`absolute top-1 bottom-1 card-gradient rounded-md shadow-sm transition-all duration-300 ease-in-out z-0 ${
+                className={`absolute top-1 bottom-1 bg-background rounded-md shadow-sm transition-all duration-300 ease-in-out z-0 ${
                   activeTab === 'profile' 
                     ? 'left-1 w-[calc(33.333%-4px)]' 
                     : activeTab === 'notifications' 

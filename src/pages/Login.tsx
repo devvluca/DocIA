@@ -33,11 +33,15 @@ const Login = () => {
     // Simular autenticação
     setTimeout(() => {
       if (formData.email === 'medico@docia.com' && formData.password === '123456') {
-        toast.success('Login realizado com sucesso!');
+        toast.success('Login realizado com sucesso!', {
+          duration: 3000,
+        });
         login(); // Usar o contexto de autenticação
         navigate('/');
       } else {
-        toast.error('Credenciais inválidas. Tente: medico@docia.com / 123456');
+        toast.error('Credenciais inválidas. Tente: medico@docia.com / 123456', {
+          duration: 3000,
+        });
       }
       setIsLoading(false);
     }, 1500);
