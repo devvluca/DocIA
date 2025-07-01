@@ -67,6 +67,7 @@ const PatientProfile = () => {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [isAnamnesisModalOpen, setIsAnamnesisModalOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [selectedMessageType, setSelectedMessageType] = useState<string>('');
 
   // Estados para formulários
   const [newAppointment, setNewAppointment] = useState({
@@ -175,41 +176,41 @@ const PatientProfile = () => {
   const getBannerGradient = () => {
     const currentColor = avatarColor || patient.avatarColor || getAvatarColor(patient.id);
     
-    // Mapear cores do Tailwind para cores CSS
+    // Mapear cores do Tailwind para cores CSS - tons mais claros e vibrantes
     const colorMap: { [key: string]: string } = {
-      'bg-red-500': 'from-red-400 to-red-600',
-      'bg-blue-500': 'from-blue-400 to-blue-600',
-      'bg-green-500': 'from-green-400 to-green-600',
-      'bg-yellow-500': 'from-yellow-400 to-yellow-600',
-      'bg-purple-500': 'from-purple-400 to-purple-600',
-      'bg-pink-500': 'from-pink-400 to-pink-600',
-      'bg-indigo-500': 'from-indigo-400 to-indigo-600',
-      'bg-teal-500': 'from-teal-400 to-teal-600',
-      'bg-orange-500': 'from-orange-400 to-orange-600',
-      'bg-cyan-500': 'from-cyan-400 to-cyan-600',
-      'bg-red-300': 'from-red-200 to-red-400',
-      'bg-red-700': 'from-red-600 to-red-800',
-      'bg-blue-300': 'from-blue-200 to-blue-400',
-      'bg-blue-700': 'from-blue-600 to-blue-800',
-      'bg-green-300': 'from-green-200 to-green-400',
-      'bg-green-700': 'from-green-600 to-green-800',
-      'bg-yellow-300': 'from-yellow-200 to-yellow-400',
-      'bg-yellow-600': 'from-yellow-500 to-yellow-700',
-      'bg-purple-300': 'from-purple-200 to-purple-400',
-      'bg-purple-700': 'from-purple-600 to-purple-800',
-      'bg-pink-300': 'from-pink-200 to-pink-400',
-      'bg-pink-700': 'from-pink-600 to-pink-800',
-      'bg-indigo-300': 'from-indigo-200 to-indigo-400',
-      'bg-indigo-700': 'from-indigo-600 to-indigo-800',
-      'bg-teal-300': 'from-teal-200 to-teal-400',
-      'bg-teal-700': 'from-teal-600 to-teal-800',
-      'bg-orange-300': 'from-orange-200 to-orange-400',
-      'bg-orange-700': 'from-orange-600 to-orange-800',
-      'bg-cyan-300': 'from-cyan-200 to-cyan-400',
-      'bg-cyan-700': 'from-cyan-600 to-cyan-800'
+      'bg-red-500': 'from-red-400 to-red-500',
+      'bg-blue-500': 'from-blue-400 to-blue-500',
+      'bg-green-500': 'from-green-400 to-green-500',
+      'bg-yellow-500': 'from-yellow-400 to-yellow-500',
+      'bg-purple-500': 'from-purple-400 to-purple-500',
+      'bg-pink-500': 'from-pink-400 to-pink-500',
+      'bg-indigo-500': 'from-indigo-400 to-indigo-500',
+      'bg-teal-500': 'from-teal-400 to-teal-500',
+      'bg-orange-500': 'from-orange-400 to-orange-500',
+      'bg-cyan-500': 'from-cyan-400 to-cyan-500',
+      'bg-red-300': 'from-red-300 to-red-400',
+      'bg-red-700': 'from-red-500 to-red-600',
+      'bg-blue-300': 'from-blue-300 to-blue-400',
+      'bg-blue-700': 'from-blue-500 to-blue-600',
+      'bg-green-300': 'from-green-300 to-green-400',
+      'bg-green-700': 'from-green-500 to-green-600',
+      'bg-yellow-300': 'from-yellow-300 to-yellow-400',
+      'bg-yellow-600': 'from-yellow-400 to-yellow-500',
+      'bg-purple-300': 'from-purple-300 to-purple-400',
+      'bg-purple-700': 'from-purple-500 to-purple-600',
+      'bg-pink-300': 'from-pink-300 to-pink-400',
+      'bg-pink-700': 'from-pink-500 to-pink-600',
+      'bg-indigo-300': 'from-indigo-300 to-indigo-400',
+      'bg-indigo-700': 'from-indigo-500 to-indigo-600',
+      'bg-teal-300': 'from-teal-300 to-teal-400',
+      'bg-teal-700': 'from-teal-500 to-teal-600',
+      'bg-orange-300': 'from-orange-300 to-orange-400',
+      'bg-orange-700': 'from-orange-500 to-orange-600',
+      'bg-cyan-300': 'from-cyan-300 to-cyan-400',
+      'bg-cyan-700': 'from-cyan-500 to-cyan-600'
     };
     
-    return colorMap[currentColor] || 'from-blue-400 to-blue-600';
+    return colorMap[currentColor] || 'from-blue-400 to-blue-500';
   };
 
   if (!patient) {
@@ -299,15 +300,19 @@ const PatientProfile = () => {
     setIsNewDocumentOpen(false);
   };
 
-  const handleSendWhatsApp = (type: string) => {
+  const getWhatsAppMessage = (type: string, patientName: string) => {
     const messages = {
-      reminder: `Olá ${patient.name}! Este é um lembrete da sua consulta agendada. Não esqueça de comparecer no horário marcado.`,
-      orientation: `Olá ${patient.name}! Seguem as orientações médicas: tome suas medicações conforme prescrito e mantenha uma alimentação saudável.`,
-      exam: `Olá ${patient.name}! Seus exames estão prontos. Você pode vir buscar ou agendar uma consulta para discutir os resultados.`,
-      medication: `Olá ${patient.name}! Lembrete para tomar sua medicação conforme prescrito pelo médico.`
+      reminder: `Olá ${patientName}! 👋\n\nEste é um lembrete da sua consulta agendada para amanhã às 14:00.\n\nPor favor, chegue 15 minutos antes do horário marcado.\n\nObrigado!`,
+      orientation: `Olá ${patientName}! 👨‍⚕️\n\nSegue as orientações médicas conforme nossa última consulta:\n\n• Tomar medicação conforme prescrito\n• Manter dieta balanceada\n• Retornar em 30 dias\n\nDúvidas? Entre em contato!`,
+      exam: `Olá ${patientName}! 📋\n\nSeus resultados de exames estão prontos!\n\nTodos os valores estão dentro da normalidade. Parabéns por cuidar da sua saúde!\n\nAgende seu retorno se necessário.`,
+      medication: `Olá ${patientName}! 💊\n\nLembrete: É hora de tomar sua medicação!\n\n⏰ Horário: ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}\n\nMantenha a regularidade do tratamento.`
     };
 
-    const message = messages[type as keyof typeof messages];
+    return messages[type as keyof typeof messages] || '';
+  };
+
+  const handleSendWhatsApp = (type: string) => {
+    const message = getWhatsAppMessage(type, patient.name);
     const phoneNumber = patient.phone.replace(/\D/g, '');
     const whatsappUrl = `https://wa.me/55${phoneNumber}?text=${encodeURIComponent(message)}`;
     
@@ -317,6 +322,10 @@ const PatientProfile = () => {
     toast.success('Redirecionando para WhatsApp...', {
       duration: 3000,
     });
+  };
+
+  const getMessagePreview = (type: string) => {
+    return getWhatsAppMessage(type, patient?.name || '[Nome do Paciente]') || 'Selecione um tipo de mensagem para ver o preview';
   };
 
   const getStatusIcon = (status: string) => {
@@ -395,9 +404,8 @@ const PatientProfile = () => {
         <div className="relative">
           <Card className="overflow-hidden">
             <div className={`bg-gradient-to-r ${getBannerGradient()} p-6 text-white relative`}>
-              {/* Overlay com blur e contraste mais pronunciado */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-black/25 backdrop-blur-[3px]"></div>
-              <div className="absolute inset-0 bg-white/5"></div>
+              {/* Overlay sutil para melhor legibilidade */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-black/10 to-black/20 backdrop-blur-[2px]"></div>
               
               <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
                 <div className="relative">
@@ -410,10 +418,10 @@ const PatientProfile = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 p-0 rounded-full bg-white"
+                    className="absolute -bottom-2 -right-2 h-9 w-9 p-0 rounded-full bg-white hover:bg-gray-50 border-2 border-white shadow-lg"
                     onClick={() => setShowColorPicker(!showColorPicker)}
                   >
-                    <Palette className="w-4 h-4 text-gray-600" />
+                    <Palette className="w-4 h-4 text-gray-700" />
                   </Button>
                 </div>
                 
@@ -458,8 +466,8 @@ const PatientProfile = () => {
               <div className="p-6 bg-background border rounded-2xl shadow-2xl w-96 max-w-[90vw]">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h3 className="text-base font-semibold">Personalizar Avatar</h3>
-                    <p className="text-sm text-muted-foreground">Escolha uma cor para o avatar</p>
+                    <h3 className="text-base font-semibold">Personalizar Tema</h3>
+                    <p className="text-sm text-muted-foreground">Escolha uma cor para o avatar e banner</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -505,7 +513,8 @@ const PatientProfile = () => {
                     onClick={handleConfirmColor}
                     disabled={!tempColor}
                   >
-                    Aplicar Cor
+                    <Palette className="w-4 h-4 mr-2" />
+                    Aplicar Tema
                   </Button>
                   <Button 
                     size="sm" 
@@ -616,42 +625,42 @@ const PatientProfile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <p className="text-2xl font-bold text-blue-600">{vitals.peso.replace(' kg', '')}</p>
-                      <p className="text-xs text-blue-600 font-medium">Peso (kg)</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-blue-600">P</span>
+                        </div>
+                        <span className="text-sm font-medium">Peso</span>
+                      </div>
+                      <span className="text-lg font-bold">{vitals.peso}</span>
                     </div>
-                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                      <p className="text-2xl font-bold text-green-600">{vitals.altura.replace(' m', '')}</p>
-                      <p className="text-xs text-green-600 font-medium">Altura (m)</p>
+                    
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-green-600">A</span>
+                        </div>
+                        <span className="text-sm font-medium">Altura</span>
+                      </div>
+                      <span className="text-lg font-bold">{vitals.altura}</span>
                     </div>
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                      <p className="text-2xl font-bold text-emerald-600">{vitals.imc}</p>
-                      <p className="text-xs text-emerald-600 font-medium">IMC</p>
+                    
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-emerald-600">IMC</span>
+                        </div>
+                        <span className="text-sm font-medium">Índice de Massa</span>
+                      </div>
+                      <span className="text-lg font-bold">{vitals.imc}</span>
                     </div>
                   </div>
                   
-                  <div className="pt-3 border-t space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Pressão Arterial</span>
-                      </div>
-                      <span className="font-medium">{vitals.pressao}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Freq. Cardíaca</span>
-                      </div>
-                      <span className="font-medium">{vitals.frequenciaCardiaca}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <Thermometer className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Temperatura</span>
-                      </div>
-                      <span className="font-medium">{vitals.temperatura}</span>
+                  <div className="text-center pt-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 rounded-full">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">Peso Normal</span>
                     </div>
                   </div>
                 </CardContent>
@@ -693,67 +702,64 @@ const PatientProfile = () => {
             {/* Segunda linha: Consultar IA, Anamnese, Comunicação WhatsApp */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Consultar IA */}
-              <Card className="hover:shadow-md transition-shadow">
+              <Card className="hover:shadow-md transition-shadow flex flex-col">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-blue-600" />
                     Consultar IA
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-1 flex flex-col">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">IA Médica Especializada</span>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                    <span className="text-sm font-medium">IA Médica</span>
+                    <Badge className="text-xs bg-blue-900 text-blue-100 border-blue-800">
                       Disponível
                     </Badge>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground">
-                    Nossa IA analisa dados do paciente para fornecer insights médicos precisos e recomendações baseadas em evidências. 
-                    Obtenha análises do histórico médico completo, recomendações personalizadas e identificação de padrões clínicos.
-                  </p>
+                  <div className="bg-muted/50 p-4 rounded-lg flex-1 flex items-center justify-center min-h-[120px]">
+                    <div className="text-center space-y-2">
+                      <div className="w-12 h-12 mx-auto bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <MessageSquare className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Análise inteligente do histórico médico e recomendações personalizadas
+                      </p>
+                    </div>
+                  </div>
                   
-                  <p className="text-sm text-muted-foreground">
-                    A inteligência artificial também realiza análise de medicações e possíveis interações, auxiliando na tomada de decisões clínicas.
-                  </p>
-                  
-                  <Link to={`/chat/${patient.id}`}>
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  <Link to={`/chat/${patient.id}`} className="mt-auto">
+                    <Button className="w-full">
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Iniciar Chat com IA
+                      Consultar IA
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
 
               {/* Anamnese */}
-              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setIsAnamnesisModalOpen(true)}>
+              <Card className="hover:shadow-md transition-shadow cursor-pointer flex flex-col" onClick={() => setIsAnamnesisModalOpen(true)}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FileText className="w-5 h-5 text-blue-600" />
                     Anamnese
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-1 flex flex-col">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Prontuário Médico</span>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                    <span className="text-sm font-medium">Prontuário</span>
+                    <Badge className={`text-xs ${anamnesis ? 'bg-purple-800 text-purple-100 border-purple-700' : 'bg-gray-100 text-gray-700 border-gray-300'}`}>
                       {anamnesis ? 'Preenchida' : 'Pendente'}
                     </Badge>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground">
-                    Visualize ou edite a anamnese completa do paciente. O prontuário inclui história clínica atual e pregressa, 
-                    antecedentes pessoais e familiares, exame físico detalhado e diagnósticos.
-                  </p>
-                  
-                  <div className="bg-muted/50 p-3 rounded-lg">
-                    <p className="text-sm line-clamp-2">
+                  <div className="bg-muted/50 p-4 rounded-lg flex-1 min-h-[120px]">
+                    <p className="text-sm leading-relaxed">
                       {anamnesis || 'Nenhuma anamnese registrada ainda. Clique para adicionar informações médicas do paciente.'}
                     </p>
                   </div>
                   
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full mt-auto" variant="outline">
                     <FileText className="w-4 h-4 mr-2" />
                     {anamnesis ? 'Editar Anamnese' : 'Criar Anamnese'}
                   </Button>
@@ -761,123 +767,39 @@ const PatientProfile = () => {
               </Card>
 
               {/* Comunicação WhatsApp */}
-              <Card>
+              <Card className="flex flex-col">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-green-600" />
                     Comunicação WhatsApp
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-1 flex flex-col">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Mensagens Automáticas</span>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                    <span className="text-sm font-medium">Mensagens</span>
+                    <Badge className="text-xs bg-green-600 text-white border-green-500">
                       Ativo
                     </Badge>
                   </div>
                   
-                  <p className="text-sm text-muted-foreground">
-                    Envie mensagens pré-configuradas diretamente para o WhatsApp do paciente com um clique. 
-                    Disponível para lembretes de consulta, orientações médicas, notificações de exames e alertas de medicação.
-                  </p>
-                  
-                  <p className="text-sm text-muted-foreground">
-                    Sistema integrado de comunicação que facilita o contato com pacientes de forma rápida e eficiente.
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="text-xs"
-                      onClick={() => handleSendWhatsApp('reminder')}
-                    >
-                      Lembrete
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="text-xs"
-                      onClick={() => handleSendWhatsApp('orientation')}
-                    >
-                      Orientações
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="text-xs"
-                      onClick={() => handleSendWhatsApp('exam')}
-                    >
-                      Exames
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="text-xs"
-                      onClick={() => handleSendWhatsApp('medication')}
-                    >
-                      Medicação
-                    </Button>
+                  <div className="bg-muted/50 p-4 rounded-lg flex-1 min-h-[120px] flex items-center justify-center">
+                    <div className="text-center space-y-3">
+                      <div className="w-16 h-16 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <MessageSquare className="w-8 h-8 text-green-600" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Envie mensagens pré-configuradas diretamente para o WhatsApp do paciente
+                      </p>
+                    </div>
                   </div>
                   
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-700" 
+                    className="w-full mt-auto bg-green-600 hover:bg-green-700 text-white" 
                     onClick={() => setIsWhatsAppOpen(true)}
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    Abrir WhatsApp
+                    Enviar Mensagem
                   </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Consultas Totais</p>
-                      <p className="text-2xl font-bold">{patientAppointments.length}</p>
-                    </div>
-                    <Calendar className="w-8 h-8 text-blue-500" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Medicações Ativas</p>
-                      <p className="text-2xl font-bold">{medications.filter(m => m.status === 'ativo').length}</p>
-                    </div>
-                    <Pill className="w-8 h-8 text-green-500" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Documentos</p>
-                      <p className="text-2xl font-bold">{documents.length}</p>
-                    </div>
-                    <FileText className="w-8 h-8 text-purple-500" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Adesão ao Tratamento</p>
-                      <p className="text-2xl font-bold">92%</p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-orange-500" />
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -1333,66 +1255,119 @@ const PatientProfile = () => {
         </Dialog>
 
         {/* Modal WhatsApp */}
-        <Dialog open={isWhatsAppOpen} onOpenChange={setIsWhatsAppOpen}>
-          <DialogContent className="max-w-md">
+        <Dialog open={isWhatsAppOpen} onOpenChange={(open) => {
+          setIsWhatsAppOpen(open);
+          if (!open) setSelectedMessageType('');
+        }}>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-green-600" />
                 Enviar WhatsApp para {patient?.name}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Escolha o tipo de mensagem para enviar:
-              </p>
-              
-              <div className="space-y-3">
-                <Button 
-                  className="w-full justify-start bg-green-600 hover:bg-green-700"
-                  onClick={() => handleSendWhatsApp('reminder')}
-                >
-                  <Clock className="w-4 h-4 mr-2" />
-                  Lembrete de Consulta
-                </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Botões de seleção de mensagem */}
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Escolha o tipo de mensagem para enviar:
+                </p>
                 
-                <Button 
-                  className="w-full justify-start bg-blue-600 hover:bg-blue-700"
-                  onClick={() => handleSendWhatsApp('orientation')}
+                <div 
+                  className="space-y-3"
+                  onMouseLeave={() => setSelectedMessageType('')}
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Orientações Médicas
-                </Button>
+                  <Button 
+                    className="w-full justify-start bg-green-600 hover:bg-green-700"
+                    onClick={() => handleSendWhatsApp('reminder')}
+                    onMouseEnter={() => setSelectedMessageType('reminder')}
+                  >
+                    <Clock className="w-4 h-4 mr-2" />
+                    Lembrete de Consulta
+                  </Button>
+                  
+                  <Button 
+                    className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                    onClick={() => handleSendWhatsApp('orientation')}
+                    onMouseEnter={() => setSelectedMessageType('orientation')}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Orientações Médicas
+                  </Button>
+                  
+                  <Button 
+                    className="w-full justify-start bg-purple-600 hover:bg-purple-700"
+                    onClick={() => handleSendWhatsApp('exam')}
+                    onMouseEnter={() => setSelectedMessageType('exam')}
+                  >
+                    <Activity className="w-4 h-4 mr-2" />
+                    Resultados de Exames
+                  </Button>
+                  
+                  <Button 
+                    className="w-full justify-start bg-orange-600 hover:bg-orange-700"
+                    onClick={() => handleSendWhatsApp('medication')}
+                    onMouseEnter={() => setSelectedMessageType('medication')}
+                  >
+                    <Pill className="w-4 h-4 mr-2" />
+                    Lembrete de Medicação
+                  </Button>
+                </div>
                 
-                <Button 
-                  className="w-full justify-start bg-purple-600 hover:bg-purple-700"
-                  onClick={() => handleSendWhatsApp('exam')}
-                >
-                  <Activity className="w-4 h-4 mr-2" />
-                  Resultados de Exames
-                </Button>
-                
-                <Button 
-                  className="w-full justify-start bg-orange-600 hover:bg-orange-700"
-                  onClick={() => handleSendWhatsApp('medication')}
-                >
-                  <Pill className="w-4 h-4 mr-2" />
-                  Lembrete de Medicação
-                </Button>
+                <div className="pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      const phoneNumber = patient.phone.replace(/\D/g, '');
+                      const defaultMessage = `Olá ${patient.name}! 👋\n\nEspero que esteja bem. Entre em contato através do sistema DocIA se precisar de alguma coisa.\n\nAtenciosamente,\nEquipe Médica`;
+                      const whatsappUrl = `https://wa.me/55${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`;
+                      window.open(whatsappUrl, '_blank');
+                      setIsWhatsAppOpen(false);
+                    }}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Abrir Chat Direto
+                  </Button>
+                </div>
               </div>
-              
-              <div className="pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => {
-                    const phoneNumber = patient.phone.replace(/\D/g, '');
-                    window.open(`https://wa.me/55${phoneNumber}`, '_blank');
-                    setIsWhatsAppOpen(false);
-                  }}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Abrir Chat Direto
-                </Button>
+
+              {/* Preview da mensagem */}
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Preview da mensagem:
+                </p>
+                
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 min-h-[300px]">
+                  {selectedMessageType ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300">
+                        <MessageSquare className="w-4 h-4" />
+                        WhatsApp
+                      </div>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border">
+                        <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans">
+                          {getMessagePreview(selectedMessageType)}
+                        </pre>
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                        <span>•</span>
+                        Passe o mouse sobre os botões para ver diferentes mensagens
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-center">
+                      <div className="space-y-3">
+                        <div className="w-16 h-16 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                          <MessageSquare className="w-8 h-8 text-green-600 dark:text-green-400" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Passe o mouse sobre um botão para ver o preview da mensagem
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </DialogContent>
