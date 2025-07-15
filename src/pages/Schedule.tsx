@@ -259,9 +259,33 @@ const Schedule = () => {
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
+    
+    if (viewMode === 'Semana') {
+      // Navegar por semanas
+      newDate.setDate(currentDate.getDate() + (direction === 'next' ? 7 : -7));
+    } else {
+      // Navegar por meses
+      newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
+    }
+    
     setCurrentDate(newDate);
   };
+
+  // Função para gerar a semana atual
+  const generateWeek = (date: Date) => {
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() - date.getDay());
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+
+  const currentWeek = useMemo(() => generateWeek(currentDate), [currentDate]);
 
   const isToday = (date: Date) => {
     const today = new Date();
@@ -277,6 +301,19 @@ const Schedule = () => {
   };
 
   const formatDateHeader = (date: Date) => {
+    if (viewMode === 'Semana') {
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay());
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      
+      if (weekStart.getMonth() === weekEnd.getMonth()) {
+        return `${weekStart.getDate()}-${weekEnd.getDate()} de ${weekEnd.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`;
+      } else {
+        return `${weekStart.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      }
+    }
+    
     return date.toLocaleDateString('pt-BR', { 
       month: 'long', 
       year: 'numeric' 
@@ -727,17 +764,12 @@ const Schedule = () => {
                     <div className="p-3 bg-muted/50 border-r">
                       <span className="text-sm font-medium">Horário</span>
                     </div>
-                    {weekDays.map((day, index) => {
-                      // Calcular a data real para cada dia da semana
-                      const weekStart = new Date(currentDate);
-                      weekStart.setDate(currentDate.getDate() - currentDate.getDay());
-                      const dayDate = new Date(weekStart);
-                      dayDate.setDate(weekStart.getDate() + index);
+                    {currentWeek.map((dayDate, index) => {
                       const isTodayWeek = isToday(dayDate);
                       
                       return (
                         <div 
-                          key={day} 
+                          key={index} 
                           className={`p-3 border-r text-center transition-colors ${
                             isTodayWeek 
                               ? 'bg-primary/20 border-primary' 
@@ -745,7 +777,7 @@ const Schedule = () => {
                           }`}
                         >
                           <div className={`text-sm font-medium ${isTodayWeek ? 'text-primary font-bold' : ''}`}>
-                            {day}
+                            {weekDays[dayDate.getDay()]}
                           </div>
                           <div className={`text-xs ${isTodayWeek ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
                             {dayDate.getDate()}/{dayDate.getMonth() + 1}
@@ -760,11 +792,30 @@ const Schedule = () => {
                       <div className="p-3 bg-muted/20 border-r text-sm text-muted-foreground">
                         {hour}
                       </div>
-                      {Array.from({length: 7}).map((_, dayIndex) => (
-                        <div key={dayIndex} className="border-r p-1 hover:bg-accent cursor-pointer">
-                          {/* Consultas seriam renderizadas aqui baseadas no horário e dia */}
-                        </div>
-                      ))}
+                      {currentWeek.map((dayDate, dayIndex) => {
+                        const dayDateStr = dayDate.toISOString().split('T')[0];
+                        
+                        // Encontrar consultas para este dia e horário
+                        const dayAppointments = getAppointmentsByDate(dayDate);
+                        const hourAppointments = dayAppointments.filter(apt => 
+                          apt.time.split(':')[0] === hour.split(':')[0]
+                        );
+                        
+                        return (
+                          <div key={dayIndex} className="border-r p-1 hover:bg-accent cursor-pointer relative">
+                            {hourAppointments.map((appointment) => (
+                              <div
+                                key={appointment.id}
+                                className="text-xs p-1 mb-1 rounded bg-primary/20 border-l-2 border-primary truncate"
+                                title={`${appointment.time} - ${appointment.patientName} (${appointment.type})`}
+                              >
+                                <div className="font-medium truncate">{appointment.patientName}</div>
+                                <div className="text-muted-foreground truncate">{appointment.type}</div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   ))}
                 </div>

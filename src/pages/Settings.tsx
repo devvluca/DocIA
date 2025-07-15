@@ -118,7 +118,8 @@ const Settings = () => {
       phone: '(11) 99999-9999',
       bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.',
       avatar: null,
-      avatarColor: 'bg-blue-500'
+      avatarColor: 'bg-blue-500',
+      gender: 'M' // M para masculino, F para feminino
     };
   };
 
@@ -581,7 +582,25 @@ const Settings = () => {
                       onChange={(e) => handleProfileChange('name', e.target.value)}
                       className="input-enhanced"
                     />
-                  </div>                  <div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="gender">Gênero</Label>
+                    <Select 
+                      value={userProfile.gender || 'M'} 
+                      onValueChange={(value) => handleProfileChange('gender', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione seu gênero" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">Masculino (Dr.)</SelectItem>
+                        <SelectItem value="F">Feminino (Dra.)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"

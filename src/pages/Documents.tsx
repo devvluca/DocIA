@@ -128,6 +128,10 @@ const Documents = () => {
       }
     ];
 
+    // Carregar documentos do localStorage (vindos do PatientProfile)
+    const globalDocuments = JSON.parse(localStorage.getItem('globalDocuments') || '[]');
+    const allDocuments = [...mockDocuments, ...globalDocuments];
+
     const mockTemplates: Template[] = [
       {
         id: '1',
@@ -159,7 +163,7 @@ const Documents = () => {
       }
     ];
 
-    setDocuments(mockDocuments);
+    setDocuments(allDocuments);
     setTemplates(mockTemplates);
   }, []);
 
@@ -260,6 +264,11 @@ const Documents = () => {
       };
       
       setDocuments(prev => [...prev, newDoc]);
+      
+      // Persistir no localStorage para sincronização
+      const existingDocs = JSON.parse(localStorage.getItem('globalDocuments') || '[]');
+      existingDocs.push(newDoc);
+      localStorage.setItem('globalDocuments', JSON.stringify(existingDocs));
     });
     setIsUploadOpen(false);
   };

@@ -10,18 +10,26 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavbar } from '@/contexts/NavbarContext';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import PatientCard from '@/components/layout/PatientCard';
-import { mockPatients, mockAppointments } from '@/data/mockData';
+import { usePatientData } from '@/hooks/usePatientData';
+import { useTheme } from '@/hooks/useTheme';
 import { Patient } from '@/types';
 import { Link } from 'react-router-dom';
 import AddPatientDialog from '@/components/dialogs/AddPatientDialog';
 
 const Dashboard = () => {
   const { isCollapsed } = useNavbar();
+  const { theme } = useTheme();
+  const { 
+    patients, 
+    setPatients, 
+    getTodayAppointments, 
+    getUpcomingAppointments,
+    stats 
+  } = usePatientData();
   
   // Debug para verificar se o estado está mudando
   console.log('Dashboard - isCollapsed:', isCollapsed);
   
-  const [patients, setPatients] = useState<Patient[]>(mockPatients);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCondition, setFilterCondition] = useState('all');
   const [filterGender, setFilterGender] = useState('all');
@@ -31,6 +39,12 @@ const Dashboard = () => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add');
+
+  // Usar as funções do hook para obter as consultas
+  const todayAppointments = getTodayAppointments();
+  const upcomingAppointments = todayAppointments.length > 0 
+    ? todayAppointments 
+    : getUpcomingAppointments(3);
 
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -78,7 +92,6 @@ const Dashboard = () => {
   });
 
   const uniqueConditions = Array.from(new Set(patients.map(p => p.condition)));
-  const todayAppointments = mockAppointments.filter(apt => apt.date === '2025-06-29');
 
   const handleAddPatient = (newPatient: Omit<Patient, 'id' | 'createdAt'>) => {
     const patient: Patient = {
@@ -178,7 +191,7 @@ const Dashboard = () => {
             </Avatar>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta, {userProfile.name}!</p>
+              <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta, {userProfile.name.replace('Dr. ', '').split(' ')[0]}!</p>
             </div>
           </div>
           
@@ -209,7 +222,7 @@ const Dashboard = () => {
               <Users className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg lg:text-2xl font-bold">{patients.length}</div>
+              <div className="text-lg lg:text-2xl font-bold">{stats.totalPatients}</div>
               <p className="text-[10px] lg:text-xs text-muted-foreground">
                 +2 novos esta semana
               </p>
@@ -222,9 +235,9 @@ const Dashboard = () => {
               <Activity className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg lg:text-2xl font-bold text-green-600">{patients.filter(p => p.tags.includes('ativo')).length}</div>
+              <div className="text-lg lg:text-2xl font-bold text-green-600">{stats.activePatients}</div>
               <p className="text-[10px] lg:text-xs text-muted-foreground">
-                Em tratamento ativo
+                Com consultas agendadas
               </p>
             </CardContent>
           </Card>
@@ -232,12 +245,12 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs lg:text-sm font-medium">Consultas Hoje</CardTitle>
-              <Calendar className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground" />
+              <Calendar className={`h-3 w-3 lg:h-4 lg:w-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-lg lg:text-2xl font-bold text-amber-600">{todayAppointments.length}</div>
+              <div className="text-lg lg:text-2xl font-bold text-amber-600">{stats.todayAppointments}</div>
               <p className="text-[10px] lg:text-xs text-muted-foreground">
-                3 agendadas para amanhã
+                {upcomingAppointments.length} próximas agendadas
               </p>
             </CardContent>
           </Card>
@@ -248,9 +261,9 @@ const Dashboard = () => {
               <TrendingUp className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-lg lg:text-2xl font-bold text-blue-600">85%</div>
+              <div className="text-lg lg:text-2xl font-bold text-blue-600">{stats.returnRate}%</div>
               <p className="text-[10px] lg:text-xs text-muted-foreground">
-                +5% em relação ao mês passado
+                Pacientes com retorno agendado
               </p>
             </CardContent>
           </Card>
@@ -259,11 +272,13 @@ const Dashboard = () => {
         {/* Upcoming Appointments Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg lg:text-xl">Próximas Consultas</CardTitle>
+            <CardTitle className="text-lg lg:text-xl">
+              {todayAppointments.length > 0 ? 'Consultas de Hoje' : 'Próximas Consultas'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
-              {todayAppointments.map((appointment) => (
+              {upcomingAppointments.map((appointment) => (
                 <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate">{appointment.patientName}</p>
@@ -271,15 +286,20 @@ const Dashboard = () => {
                   </div>
                   <div className="text-right ml-2">
                     <p className="text-sm font-medium">{appointment.time}</p>
-                    <Badge variant="secondary" className="text-xs">
-                      {appointment.status === 'scheduled' ? 'Agendada' : appointment.status}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      {todayAppointments.length === 0 && (
+                        <p className="text-xs text-muted-foreground">{new Date(appointment.date).toLocaleDateString('pt-BR')}</p>
+                      )}
+                      <Badge variant="secondary" className="text-xs">
+                        {appointment.status === 'scheduled' ? 'Agendada' : appointment.status}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               ))}
-              {todayAppointments.length === 0 && (
+              {upcomingAppointments.length === 0 && (
                 <p className="text-center text-muted-foreground py-4 col-span-full">
-                  Nenhuma consulta agendada para hoje
+                  {todayAppointments.length === 0 ? 'Nenhuma consulta agendada' : 'Nenhuma consulta agendada para hoje'}
                 </p>
               )}
             </div>
@@ -338,7 +358,7 @@ const Dashboard = () => {
 
                 <Select value={filterAge} onValueChange={setFilterAge}>
                   <SelectTrigger className="text-xs lg:text-sm">
-                    <Calendar className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
+                    <Calendar className={`w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`} />
                     <SelectValue placeholder="Idade" />
                   </SelectTrigger>
                   <SelectContent>

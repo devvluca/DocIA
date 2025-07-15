@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { MessageSquare, FileText, MoreVertical, Edit, Trash2, Eye, EyeOff, Phone, Mail } from 'lucide-react';
+import { MessageSquare, FileText, MoreVertical, Edit, Trash2, Eye, EyeOff, Phone, Mail, Calendar } from 'lucide-react';
 
 interface PatientCardProps {
   patient: Patient;
@@ -45,6 +45,66 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onEdit }) => {
     ];
     const index = parseInt(patientId) % colors.length;
     return colors[index];
+  };
+
+  // Função para formatar a data da próxima consulta
+  const formatNextAppointment = (dateString?: string) => {
+    if (!dateString) return 'Sem consulta marcada';
+    
+    try {
+      const [day, month, year] = dateString.split('/');
+      const appointmentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const today = new Date();
+      
+      // Remover horas para comparar apenas datas
+      today.setHours(0, 0, 0, 0);
+      appointmentDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = appointmentDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return 'Hoje';
+      } else if (diffDays === 1) {
+        return 'Amanhã';
+      } else if (diffDays > 0) {
+        return `Em ${diffDays} dias (${dateString})`;
+      } else {
+        return `${Math.abs(diffDays)} dias atrás (${dateString})`;
+      }
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const getNextAppointmentColor = (dateString?: string) => {
+    if (!dateString) return 'text-muted-foreground';
+    
+    try {
+      const [day, month, year] = dateString.split('/');
+      const appointmentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      const today = new Date();
+      
+      today.setHours(0, 0, 0, 0);
+      appointmentDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = appointmentDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        return 'text-blue-500 font-medium'; // Hoje - azul menos saturado
+      } else if (diffDays === 1) {
+        return 'text-green-500 font-medium'; // Amanhã - verde menos saturado
+      } else if (diffDays > 0 && diffDays <= 7) {
+        return 'text-orange-300'; // Esta semana - laranja muito menos saturado
+      } else if (diffDays > 0) {
+        return 'text-muted-foreground'; // Futuro distante
+      } else {
+        return 'text-red-500'; // Atrasado - vermelho menos saturado
+      }
+    } catch (error) {
+      return 'text-muted-foreground';
+    }
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -136,6 +196,12 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, onEdit }) => {
             <p className="text-sm text-muted-foreground">
               Última visita: {patient.lastVisit}
             </p>
+            <div className="flex items-center gap-1 mt-1">
+              <Calendar className="w-3 h-3 text-muted-foreground" />
+              <p className={`text-xs ${getNextAppointmentColor(patient.nextAppointment)}`}>
+                Próxima consulta: {formatNextAppointment(patient.nextAppointment)}
+              </p>
+            </div>
           </div>
 
           {/* Informações de contato (condicionalmente exibidas) */}

@@ -45,7 +45,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { mockPatients, mockAppointments } from '@/data/mockData';
+import { mockPatients, mockAppointments, anamnesisTemplates } from '@/data/mockData';
 import { useNavbar } from '@/contexts/NavbarContext';
 import { toast } from 'sonner';
 
@@ -67,6 +67,10 @@ const PatientProfile = () => {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [isAnamnesisModalOpen, setIsAnamnesisModalOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [isAddMeasurementOpen, setIsAddMeasurementOpen] = useState(false);
+  const [isAddAllergyOpen, setIsAddAllergyOpen] = useState(false);
+  // Estados para anamnese com templates
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [selectedMessageType, setSelectedMessageType] = useState<string>('');
 
   // Estados para formulários
@@ -88,6 +92,20 @@ const PatientProfile = () => {
     type: 'appointment',
     date: ''
   });
+  const [newMeasurement, setNewMeasurement] = useState({
+    peso: '',
+    altura: '',
+    pressao: '',
+    temperatura: '',
+    frequenciaCardiaca: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+  const [newAllergy, setNewAllergy] = useState({
+    name: '',
+    severity: 'Leve',
+    reaction: '',
+    notes: ''
+  });
 
   // Mock data adicional para o perfil
   const patientAppointments = mockAppointments.filter(apt => apt.patientId === id);
@@ -101,31 +119,30 @@ const PatientProfile = () => {
     frequenciaCardiaca: '72 bpm'
   };
 
-  const medications = [
-    { id: '1', name: 'Losartana 50mg', dosage: '1x ao dia', status: 'ativo', since: '15/01/2024', nextDose: '08:00' },
-    { id: '2', name: 'Omeprazol 20mg', dosage: '1x ao dia', status: 'ativo', since: '22/03/2024', nextDose: '07:00' },
-    { id: '3', name: 'Vitamina D 2000ui', dosage: '1x ao dia', status: 'pausado', since: '10/02/2024', nextDose: '-' }
-  ];
+  // Medicações zeradas - médico deve adicionar
+  const [medications, setMedications] = useState([]);
 
-  const allergies = [
-    { substance: 'Penicilina', reaction: 'Erupção cutânea', severity: 'moderada' },
-    { substance: 'Dipirona', reaction: 'Náusea', severity: 'leve' }
-  ];
+  // Alergias zeradas - médico deve adicionar  
+  const [allergies, setAllergies] = useState([]);
 
-  const timeline = [
-    { id: '1', date: '29/06/2025', event: 'Consulta de retorno agendada', description: 'Acompanhamento da pressão arterial', type: 'appointment', status: 'scheduled' },
-    { id: '2', date: '25/06/2025', event: 'Consulta realizada', description: 'Avaliação geral e ajuste de medicação', type: 'appointment', status: 'completed' },
-    { id: '3', date: '20/06/2025', event: 'Exames laboratoriais', description: 'Hemograma completo e glicemia', type: 'exam', status: 'completed' },
-    { id: '4', date: '15/06/2025', event: 'Medicação ajustada', description: 'Losartana aumentada para 50mg', type: 'medication', status: 'completed' },
-    { id: '5', date: '10/06/2025', event: 'Consulta de emergência', description: 'Pico hipertensivo controlado', type: 'emergency', status: 'completed' }
-  ];
+  // Medidas corporais - médico deve adicionar
+  const [measurements, setMeasurements] = useState([]);
 
-  const documents = [
-    { id: '1', name: 'Exame de Sangue - Junho 2025', type: 'exam', date: '20/06/2025', size: '2.4 MB' },
-    { id: '2', name: 'Eletrocardiograma', type: 'exam', date: '15/06/2025', size: '1.8 MB' },
-    { id: '3', name: 'Receituário Médico', type: 'prescription', date: '25/06/2025', size: '1.2 MB' },
-    { id: '4', name: 'Atestado Médico', type: 'certificate', date: '25/06/2025', size: '800 KB' }
-  ];
+  // Histórico sincronizado com os appointments reais do paciente
+  const timeline = mockAppointments
+    .filter(apt => apt.patientId === id)
+    .map(apt => ({
+      id: apt.id,
+      date: new Date(apt.date).toLocaleDateString('pt-BR'),
+      event: apt.status === 'completed' ? 'Consulta realizada' : 'Consulta agendada',
+      description: `${apt.type} - ${apt.time}`,
+      type: 'appointment',
+      status: apt.status
+    }))
+    .sort((a, b) => new Date(b.date.split('/').reverse().join('-')).getTime() - new Date(a.date.split('/').reverse().join('-')).getTime());
+
+  // Documentos sincronizados com os documentos reais do paciente
+  const documents = patient?.documents || [];
 
   const colorOptions = [
     { name: 'Vermelho', class: 'bg-red-500' },
@@ -267,6 +284,16 @@ const PatientProfile = () => {
 
   const handleAddMedication = () => {
     if (newMedication.name && newMedication.dosage) {
+      const medication = {
+        id: Date.now().toString(),
+        name: newMedication.name,
+        dosage: newMedication.dosage,
+        frequency: newMedication.frequency,
+        status: 'ativo',
+        since: new Date().toLocaleDateString('pt-BR'),
+        nextDose: '08:00' // Default time
+      };
+      setMedications([...medications, medication]);
       toast.success('Medicação adicionada com sucesso!', {
         duration: 3000,
       });
@@ -293,10 +320,107 @@ const PatientProfile = () => {
     }
   };
 
+  const handleAddMeasurement = () => {
+    if (newMeasurement.peso || newMeasurement.altura || newMeasurement.pressao || newMeasurement.temperatura || newMeasurement.frequenciaCardiaca) {
+      const measurement = {
+        id: Date.now().toString(),
+        ...newMeasurement,
+        imc: newMeasurement.peso && newMeasurement.altura ? 
+          (parseFloat(newMeasurement.peso) / Math.pow(parseFloat(newMeasurement.altura), 2)).toFixed(1) : ''
+      };
+      setMeasurements([...measurements, measurement]);
+      toast.success('Medidas corporais adicionadas com sucesso!', {
+        duration: 3000,
+      });
+      setNewMeasurement({
+        peso: '',
+        altura: '',
+        pressao: '',
+        temperatura: '',
+        frequenciaCardiaca: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      setIsAddMeasurementOpen(false);
+    } else {
+      toast.error('Preencha pelo menos uma medida!', {
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAddAllergy = () => {
+    if (newAllergy.name) {
+      const allergy = {
+        id: Date.now().toString(),
+        ...newAllergy,
+        dateAdded: new Date().toLocaleDateString('pt-BR')
+      };
+      setAllergies([...allergies, allergy]);
+      toast.success('Alergia adicionada com sucesso!', {
+        duration: 3000,
+      });
+      setNewAllergy({ name: '', severity: 'Leve', reaction: '', notes: '' });
+      setIsAddAllergyOpen(false);
+    } else {
+      toast.error('Digite o nome da alergia!', {
+        duration: 3000,
+      });
+    }
+  };
+
   const handleUploadDocument = () => {
-    toast.success('Documento enviado com sucesso!', {
-      duration: 3000,
-    });
+    const fileInput = document.getElementById('document-upload') as HTMLInputElement;
+    const categorySelect = document.querySelector('[data-category-select]') as HTMLSelectElement;
+    const descriptionInput = document.getElementById('document-description') as HTMLTextAreaElement;
+    
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      
+      // Criar documento para o paciente
+      const newDocument = {
+        id: Date.now().toString(),
+        name: file.name,
+        type: file.name.endsWith('.pdf') ? 'pdf' : file.name.endsWith('.doc') || file.name.endsWith('.docx') ? 'doc' : 'image',
+        url: URL.createObjectURL(file),
+        uploadDate: new Date().toISOString().split('T')[0]
+      };
+      
+      // Adicionar ao paciente no mockPatients
+      const patientIndex = mockPatients.findIndex(p => p.id === patient?.id);
+      if (patientIndex !== -1) {
+        if (!mockPatients[patientIndex].documents) {
+          mockPatients[patientIndex].documents = [];
+        }
+        mockPatients[patientIndex].documents.push(newDocument);
+      }
+      
+      // Também adicionar aos documentos globais do sistema (Documents.tsx)
+      // Simular adição ao sistema global de documentos
+      const globalDocument = {
+        id: newDocument.id,
+        name: newDocument.name,
+        type: newDocument.type as 'pdf' | 'doc' | 'image' | 'template',
+        size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+        uploadDate: newDocument.uploadDate,
+        category: categorySelect?.value || 'Outros',
+        patient: patient?.name,
+        content: descriptionInput?.value || '',
+        url: newDocument.url
+      };
+      
+      // Persistir no localStorage para sincronizar com Documents.tsx
+      const existingDocs = JSON.parse(localStorage.getItem('globalDocuments') || '[]');
+      existingDocs.push(globalDocument);
+      localStorage.setItem('globalDocuments', JSON.stringify(existingDocs));
+      
+      toast.success('Documento enviado com sucesso!', {
+        duration: 3000,
+      });
+    } else {
+      toast.error('Selecione um arquivo para upload!', {
+        duration: 3000,
+      });
+    }
     setIsNewDocumentOpen(false);
   };
 
@@ -348,11 +472,16 @@ const PatientProfile = () => {
   };
 
   const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'alta': return 'bg-red-100 text-red-700 border border-red-200';
-      case 'moderada': return 'bg-amber-100 text-amber-700 border border-amber-200';
-      case 'leve': return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-      default: return 'bg-gray-100 text-gray-700 border border-gray-200';
+    switch (severity.toLowerCase()) {
+      case 'severa':
+      case 'grave': 
+        return 'bg-red-100 text-red-700 border border-red-200';
+      case 'moderada': 
+        return 'bg-amber-100 text-amber-700 border border-amber-200';
+      case 'leve': 
+        return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+      default: 
+        return 'bg-gray-100 text-gray-700 border border-gray-200';
     }
   };
 
@@ -559,7 +688,7 @@ const PatientProfile = () => {
               
               <TabsTrigger value="anamnesis" className="relative z-10 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">Prontuário</span>
+                <span className="hidden sm:inline">Anamnese</span>
               </TabsTrigger>
               
               <TabsTrigger value="medications" className="relative z-10 flex items-center gap-2">
@@ -581,7 +710,7 @@ const PatientProfile = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Primeira linha: Informações de Contato, Medidas Corporais, Alergias */}
+            {/* Primeira linha: Informações de Contato, Consultar IA, Anamnese */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Contact Information */}
               <Card>
@@ -616,91 +745,6 @@ const PatientProfile = () => {
                 </CardContent>
               </Card>
 
-              {/* Medidas Corporais */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Heart className="w-5 h-5" />
-                    Medidas Corporais
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-bold text-blue-600">P</span>
-                        </div>
-                        <span className="text-sm font-medium">Peso</span>
-                      </div>
-                      <span className="text-lg font-bold">{vitals.peso}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-bold text-green-600">A</span>
-                        </div>
-                        <span className="text-sm font-medium">Altura</span>
-                      </div>
-                      <span className="text-lg font-bold">{vitals.altura}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-bold text-emerald-600">IMC</span>
-                        </div>
-                        <span className="text-sm font-medium">Índice de Massa</span>
-                      </div>
-                      <span className="text-lg font-bold">{vitals.imc}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center pt-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 rounded-full">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-green-700 dark:text-green-300">Peso Normal</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Allergies */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" />
-                    Alergias
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {allergies.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-4">Nenhuma alergia registrada</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {allergies.map((allergy, index) => (
-                        <div key={index} className="p-4 border-2 border-amber-200 dark:border-amber-700 bg-background rounded-xl shadow-sm hover:shadow-md hover:border-amber-300 dark:hover:border-amber-600 transition-all duration-200">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                              <p className="font-semibold">{allergy.substance}</p>
-                            </div>
-                            <Badge className={`${getSeverityColor(allergy.severity)} border-0 font-medium`}>
-                              {allergy.severity}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground ml-4">{allergy.reaction}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Segunda linha: Consultar IA, Anamnese, Comunicação WhatsApp */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Consultar IA */}
               <Card className="hover:shadow-md transition-shadow flex flex-col">
                 <CardHeader>
@@ -738,34 +782,30 @@ const PatientProfile = () => {
               </Card>
 
               {/* Anamnese */}
-              <Card className="hover:shadow-md transition-shadow cursor-pointer flex flex-col" onClick={() => setIsAnamnesisModalOpen(true)}>
+              <Card className="hover:shadow-md transition-shadow cursor-pointer flex flex-col" onClick={() => setActiveTab('anamnesis')}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-blue-600" />
-                    Anamnese
+                    <FileText className="w-5 h-5 text-purple-600" />
+                    Preview de Anamnese
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 flex-1 flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Prontuário</span>
-                    <Badge className={`text-xs ${anamnesis ? 'bg-purple-800 text-purple-100 border-purple-700' : 'bg-gray-100 text-gray-700 border-gray-300'}`}>
-                      {anamnesis ? 'Preenchida' : 'Pendente'}
-                    </Badge>
-                  </div>
-                  
                   <div className="bg-muted/50 p-4 rounded-lg flex-1 min-h-[120px]">
-                    <p className="text-sm leading-relaxed">
-                      {anamnesis || 'Nenhuma anamnese registrada ainda. Clique para adicionar informações médicas do paciente.'}
+                    <p className="text-sm leading-relaxed line-clamp-4">
+                      {anamnesis || 'Nenhuma anamnese registrada ainda. Clique para ir à aba de anamnese e adicionar informações médicas do paciente.'}
                     </p>
                   </div>
                   
                   <Button className="w-full mt-auto" variant="outline">
                     <FileText className="w-4 h-4 mr-2" />
-                    {anamnesis ? 'Editar Anamnese' : 'Criar Anamnese'}
+                    {anamnesis ? 'Ver Anamnese Completa' : 'Criar Anamnese'}
                   </Button>
                 </CardContent>
               </Card>
+            </div>
 
+            {/* Segunda linha: Comunicação WhatsApp, Medidas Corporais, Alergias */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Comunicação WhatsApp */}
               <Card className="flex flex-col">
                 <CardHeader>
@@ -775,13 +815,6 @@ const PatientProfile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 flex-1 flex flex-col">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Mensagens</span>
-                    <Badge className="text-xs bg-green-600 text-white border-green-500">
-                      Ativo
-                    </Badge>
-                  </div>
-                  
                   <div className="bg-muted/50 p-4 rounded-lg flex-1 min-h-[120px] flex items-center justify-center">
                     <div className="text-center space-y-3">
                       <div className="w-16 h-16 mx-auto bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
@@ -802,6 +835,125 @@ const PatientProfile = () => {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Medidas Corporais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="w-5 h-5" />
+                    Medidas Corporais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {measurements.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                        <Heart className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Nenhuma medida corporal registrada ainda
+                      </p>
+                      <Button variant="outline" size="sm" onClick={() => setIsAddMeasurementOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Medidas
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {measurements.slice(-1).map((measurement) => (
+                        <div key={measurement.id} className="space-y-2">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            {measurement.peso && (
+                              <div>
+                                <span className="text-muted-foreground">Peso:</span>
+                                <p className="font-medium">{measurement.peso} kg</p>
+                              </div>
+                            )}
+                            {measurement.altura && (
+                              <div>
+                                <span className="text-muted-foreground">Altura:</span>
+                                <p className="font-medium">{measurement.altura} m</p>
+                              </div>
+                            )}
+                            {measurement.imc && (
+                              <div>
+                                <span className="text-muted-foreground">IMC:</span>
+                                <p className="font-medium">{measurement.imc}</p>
+                              </div>
+                            )}
+                            {measurement.pressao && (
+                              <div>
+                                <span className="text-muted-foreground">Pressão:</span>
+                                <p className="font-medium">{measurement.pressao} mmHg</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Última atualização: {measurement.date}
+                          </div>
+                        </div>
+                      ))}
+                      <Button variant="outline" size="sm" onClick={() => setIsAddMeasurementOpen(true)} className="w-full">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Medidas
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Allergies */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Alergias
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {allergies.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                        <AlertTriangle className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Nenhuma alergia registrada ainda
+                      </p>
+                      <Button variant="outline" size="sm" onClick={() => setIsAddAllergyOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Alergia
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {allergies.slice(0, 2).map((allergy) => (
+                        <div key={allergy.id} className="border rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{allergy.name}</h4>
+                            <Badge className={getSeverityColor(allergy.severity)}>
+                              {allergy.severity}
+                            </Badge>
+                          </div>
+                          {allergy.reaction && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Reação: {allergy.reaction}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                      {allergies.length > 2 && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          +{allergies.length - 2} alergias
+                        </p>
+                      )}
+                      <Button variant="outline" size="sm" onClick={() => setIsAddAllergyOpen(true)} className="w-full">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Alergia
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -814,34 +966,70 @@ const PatientProfile = () => {
                     <FileText className="w-5 h-5" />
                     Anamnese
                   </CardTitle>
-                  <Button
-                    variant={isEditingAnamnesis ? "default" : "outline"}
-                    onClick={() => isEditingAnamnesis ? handleSaveAnamnesis() : setIsEditingAnamnesis(true)}
-                  >
-                    {isEditingAnamnesis ? (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar
-                      </>
-                    ) : (
-                      <>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </>
+                  <div className="flex gap-2">
+                    {anamnesisTemplates.length > 0 && (
+                      <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Carregar template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {anamnesisTemplates.map((template) => (
+                            <SelectItem key={template.id} value={template.id}>
+                              {template.specialty}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
-                  </Button>
+                    <Button
+                      variant={isEditingAnamnesis ? "default" : "outline"}
+                      onClick={() => isEditingAnamnesis ? handleSaveAnamnesis() : setIsEditingAnamnesis(true)}
+                    >
+                      {isEditingAnamnesis ? (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Salvar
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
+                {anamnesisTemplates.length > 0 && selectedTemplate && (
+                  <div className="mb-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const template = anamnesisTemplates.find(t => t.id === selectedTemplate);
+                        if (template) {
+                          setAnamnesis(anamnesis ? `${anamnesis}\n\n--- ${template.specialty} ---\n${template.template}` : template.template);
+                          setSelectedTemplate('');
+                          setIsEditingAnamnesis(true);
+                          toast.success('Template carregado!', { duration: 3000 });
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Aplicar Template
+                    </Button>
+                  </div>
+                )}
                 {isEditingAnamnesis ? (
                   <Textarea
                     value={anamnesis}
                     onChange={(e) => setAnamnesis(e.target.value)}
-                    className="min-h-[300px] text-base"
+                    className="min-h-[400px] text-base"
                     placeholder="Digite a anamnese do paciente..."
                   />
                 ) : (
-                  <div className="whitespace-pre-wrap text-base leading-relaxed bg-muted/30 p-4 rounded-lg">
+                  <div className="whitespace-pre-wrap text-base leading-relaxed bg-muted/30 p-4 rounded-lg min-h-[400px]">
                     {anamnesis || 'Nenhuma anamnese registrada.'}
                   </div>
                 )}
@@ -859,49 +1047,66 @@ const PatientProfile = () => {
               </Button>
             </div>
 
-            <div className="grid gap-4">
-              {medications.map((medication) => (
-                <Card key={medication.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Pill className="w-5 h-5 text-blue-500" />
-                          <h4 className="font-semibold text-lg">{medication.name}</h4>
-                          <Badge className={getMedicationStatusColor(medication.status)}>
-                            {medication.status}
-                          </Badge>
+            {medications.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                    <Pill className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Nenhuma medicação registrada ainda
+                  </p>
+                  <Button onClick={() => setIsAddMedicationOpen(true)} variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Primeira Medicação
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {medications.map((medication) => (
+                  <Card key={medication.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Pill className="w-5 h-5 text-blue-500" />
+                            <h4 className="font-semibold text-lg">{medication.name}</h4>
+                            <Badge className={getMedicationStatusColor(medication.status)}>
+                              {medication.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">Dosagem:</span>
+                              <p className="font-medium">{medication.dosage}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Início:</span>
+                              <p className="font-medium">{medication.since}</p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Próxima dose:</span>
+                              <p className="font-medium">{medication.nextDose}</p>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Dosagem:</span>
-                            <p className="font-medium">{medication.dosage}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Início:</span>
-                            <p className="font-medium">{medication.since}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Próxima dose:</span>
-                            <p className="font-medium">{medication.nextDose}</p>
-                          </div>
+                        <div className="flex gap-1 ml-4">
+                          <Button variant="ghost" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
                         </div>
                       </div>
-                      
-                      <div className="flex gap-1 ml-4">
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Timeline Tab */}
@@ -914,28 +1119,45 @@ const PatientProfile = () => {
               </Button>
             </div>
 
-            <div className="space-y-4">
-              {timeline.map((event) => (
-                <Card key={event.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 mt-1">
-                        {getStatusIcon(event.status)}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          {getTypeIcon(event.type)}
-                          <h4 className="font-semibold">{event.event}</h4>
-                          <span className="text-sm text-muted-foreground">• {event.date}</span>
+            {timeline.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                    <History className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Nenhum histórico encontrado para este paciente
+                  </p>
+                  <Button onClick={() => setIsAddEventOpen(true)} variant="outline" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Primeiro Evento
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {timeline.map((event) => (
+                  <Card key={event.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 mt-1">
+                          {getStatusIcon(event.status)}
                         </div>
-                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            {getTypeIcon(event.type)}
+                            <h4 className="font-semibold">{event.event}</h4>
+                            <span className="text-sm text-muted-foreground">• {event.date}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Documents Tab */}
@@ -948,33 +1170,50 @@ const PatientProfile = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {documents.map((document) => (
-                <Card key={document.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      {getDocumentIcon(document.type)}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{document.name}</h4>
-                        <p className="text-sm text-muted-foreground">{document.date}</p>
-                        <p className="text-xs text-muted-foreground">{document.size}</p>
+            {documents.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                    <FileImage className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Nenhum documento foi adicionado ainda
+                  </p>
+                  <Button onClick={() => setIsNewDocumentOpen(true)} variant="outline" size="sm">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Fazer Upload do Primeiro Documento
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {documents.map((document) => (
+                  <Card key={document.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        {getDocumentIcon(document.type)}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium truncate">{document.name}</h4>
+                          <p className="text-sm text-muted-foreground">{document.uploadDate}</p>
+                          <p className="text-xs text-muted-foreground">Tipo: {document.type}</p>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex gap-1 mt-3">
-                      <Button variant="ghost" size="sm" className="flex-1">
-                        <Eye className="w-4 h-4 mr-1" />
-                        Ver
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex-1">
-                        <Download className="w-4 h-4 mr-1" />
-                        Baixar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      
+                      <div className="flex gap-1 mt-3">
+                        <Button variant="ghost" size="sm" className="flex-1">
+                          <Eye className="w-4 h-4 mr-1" />
+                          Ver
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex-1">
+                          <Download className="w-4 h-4 mr-1" />
+                          Baixar
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -1054,14 +1293,15 @@ const PatientProfile = () => {
               <div>
                 <Label htmlFor="document-category">Categoria</Label>
                 <Select>
-                  <SelectTrigger>
+                  <SelectTrigger data-category-select>
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="exam">Exame</SelectItem>
-                    <SelectItem value="prescription">Receita</SelectItem>
-                    <SelectItem value="certificate">Atestado</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
+                    <SelectItem value="Exames">Exames</SelectItem>
+                    <SelectItem value="Receitas">Receitas</SelectItem>
+                    <SelectItem value="Relatórios">Relatórios</SelectItem>
+                    <SelectItem value="Atestados">Atestados</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1220,6 +1460,38 @@ const PatientProfile = () => {
                   <Badge variant="outline">
                     {isEditingAnamnesis ? 'Editando' : 'Visualização'}
                   </Badge>
+                  {anamnesisTemplates.length > 0 && (
+                    <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {anamnesisTemplates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.specialty}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {selectedTemplate && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const template = anamnesisTemplates.find(t => t.id === selectedTemplate);
+                        if (template) {
+                          setAnamnesis(anamnesis ? `${anamnesis}\n\n--- ${template.specialty} ---\n${template.template}` : template.template);
+                          setSelectedTemplate('');
+                          setIsEditingAnamnesis(true);
+                          toast.success('Template aplicado!', { duration: 3000 });
+                        }
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Aplicar
+                    </Button>
+                  )}
                 </div>
                 <Button
                   variant={isEditingAnamnesis ? "default" : "outline"}
@@ -1368,6 +1640,150 @@ const PatientProfile = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal Adicionar Medidas Corporais */}
+        <Dialog open={isAddMeasurementOpen} onOpenChange={setIsAddMeasurementOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar Medidas Corporais</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="measurement-peso">Peso (kg)</Label>
+                  <Input
+                    id="measurement-peso"
+                    type="number"
+                    step="0.1"
+                    value={newMeasurement.peso}
+                    onChange={(e) => setNewMeasurement({...newMeasurement, peso: e.target.value})}
+                    placeholder="Ex: 70.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="measurement-altura">Altura (m)</Label>
+                  <Input
+                    id="measurement-altura"
+                    type="number"
+                    step="0.01"
+                    value={newMeasurement.altura}
+                    onChange={(e) => setNewMeasurement({...newMeasurement, altura: e.target.value})}
+                    placeholder="Ex: 1.75"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="measurement-pressao">Pressão Arterial (mmHg)</Label>
+                <Input
+                  id="measurement-pressao"
+                  value={newMeasurement.pressao}
+                  onChange={(e) => setNewMeasurement({...newMeasurement, pressao: e.target.value})}
+                  placeholder="Ex: 120/80"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="measurement-temperatura">Temperatura (°C)</Label>
+                  <Input
+                    id="measurement-temperatura"
+                    type="number"
+                    step="0.1"
+                    value={newMeasurement.temperatura}
+                    onChange={(e) => setNewMeasurement({...newMeasurement, temperatura: e.target.value})}
+                    placeholder="Ex: 36.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="measurement-freq">Freq. Cardíaca (bpm)</Label>
+                  <Input
+                    id="measurement-freq"
+                    type="number"
+                    value={newMeasurement.frequenciaCardiaca}
+                    onChange={(e) => setNewMeasurement({...newMeasurement, frequenciaCardiaca: e.target.value})}
+                    placeholder="Ex: 72"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="measurement-date">Data da Medição</Label>
+                <Input
+                  id="measurement-date"
+                  type="date"
+                  value={newMeasurement.date}
+                  onChange={(e) => setNewMeasurement({...newMeasurement, date: e.target.value})}
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleAddMeasurement} className="flex-1">
+                  Adicionar Medidas
+                </Button>
+                <Button variant="outline" onClick={() => setIsAddMeasurementOpen(false)} className="flex-1">
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal Adicionar Alergia */}
+        <Dialog open={isAddAllergyOpen} onOpenChange={setIsAddAllergyOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar Alergia</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="allergy-name">Nome da Alergia *</Label>
+                <Input
+                  id="allergy-name"
+                  value={newAllergy.name}
+                  onChange={(e) => setNewAllergy({...newAllergy, name: e.target.value})}
+                  placeholder="Ex: Penicilina, Amendoim, Poeira"
+                />
+              </div>
+              <div>
+                <Label htmlFor="allergy-severity">Severidade</Label>
+                <Select value={newAllergy.severity} onValueChange={(value) => setNewAllergy({...newAllergy, severity: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Leve">Leve</SelectItem>
+                    <SelectItem value="Moderada">Moderada</SelectItem>
+                    <SelectItem value="Grave">Grave</SelectItem>
+                    <SelectItem value="Severa">Severa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="allergy-reaction">Tipo de Reação</Label>
+                <Input
+                  id="allergy-reaction"
+                  value={newAllergy.reaction}
+                  onChange={(e) => setNewAllergy({...newAllergy, reaction: e.target.value})}
+                  placeholder="Ex: Erupção cutânea, Dificuldade respiratória"
+                />
+              </div>
+              <div>
+                <Label htmlFor="allergy-notes">Observações</Label>
+                <Textarea
+                  id="allergy-notes"
+                  value={newAllergy.notes}
+                  onChange={(e) => setNewAllergy({...newAllergy, notes: e.target.value})}
+                  placeholder="Informações adicionais sobre a alergia..."
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button onClick={handleAddAllergy} className="flex-1">
+                  Adicionar Alergia
+                </Button>
+                <Button variant="outline" onClick={() => setIsAddAllergyOpen(false)} className="flex-1">
+                  Cancelar
+                </Button>
               </div>
             </div>
           </DialogContent>

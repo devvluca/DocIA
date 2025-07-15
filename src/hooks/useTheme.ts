@@ -5,10 +5,19 @@ export const useTheme = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
+    // Verificar se já existe uma preferência salva
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    
+    // Se não há tema salvo, verificar a preferência do sistema
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+    
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+    
+    // Se não havia tema salvo, salvar a preferência detectada
+    if (!savedTheme) {
+      localStorage.setItem('theme', initialTheme);
     }
   }, []);
 
