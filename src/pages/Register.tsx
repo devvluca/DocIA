@@ -162,7 +162,7 @@ const Register = () => {
           </Button>
 
           {/* Header */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-3">
             <div className="flex justify-center lg:hidden mb-6">
               <img 
                 src="/img/docia_logo.png" 
@@ -174,6 +174,14 @@ const Register = () => {
             <p className="text-muted-foreground">
               Preencha os dados para criar sua conta médica
             </p>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                🎉 <strong>7 dias grátis</strong> para testar todas as funcionalidades!
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-500 mt-1">
+                Sem cartão de crédito • Cancelamento gratuito
+              </p>
+            </div>
           </div>
 
           {/* Formulário */}
@@ -396,7 +404,7 @@ const Register = () => {
           </Card>
 
           {/* Footer */}
-          <div className="text-center">
+          <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <span>Já tem uma conta?</span>
               <button 
@@ -404,6 +412,15 @@ const Register = () => {
                 onClick={() => navigate('/login')}
               >
                 Faça login
+              </button>
+            </div>
+            
+            <div className="text-center pt-2 border-t border-border/50">
+              <button 
+                className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                onClick={() => navigate('/pricing')}
+              >
+                Ver todos os planos e preços
               </button>
             </div>
           </div>

@@ -36,11 +36,32 @@ const Login = () => {
         toast.success('Login realizado com sucesso!', {
           duration: 3000,
         });
-        login(); // Usar o contexto de autenticação
+        
+        // Login como usuário de teste (vai precisar configurar o perfil)
+        login({ 
+          email: formData.email, 
+          isTestUser: true,
+          isPaidUser: false
+        });
+        navigate('/');
+      } else if (formData.email === 'dr.luca@docia.com' && formData.password === '123456') {
+        toast.success('Bem-vindo de volta, Dr. Luca!', {
+          duration: 3000,
+        });
+        
+        // Login como usuário pago existente (vai direto mostrar carregamento)
+        login({ 
+          email: formData.email, 
+          isTestUser: false,
+          isPaidUser: true,
+          title: 'Dr.',
+          name: 'Dr. Luca Silva',
+          planType: 'starter'
+        });
         navigate('/');
       } else {
-        toast.error('Credenciais inválidas. Tente: medico@docia.com / 123456', {
-          duration: 3000,
+        toast.error('Credenciais inválidas. Tente: medico@docia.com / 123456 ou dr.luca@docia.com / 123456', {
+          duration: 4000,
         });
       }
       setIsLoading(false);
@@ -269,8 +290,20 @@ const Login = () => {
             
             <div className="text-xs text-muted-foreground">
               <p>Credenciais de teste:</p>
-              <p><strong>E-mail:</strong> medico@docia.com</p>
-              <p><strong>Senha:</strong> 123456</p>
+              <p><strong>Usuário novo:</strong> medico@docia.com / 123456</p>
+              <p><strong>Usuário existente:</strong> dr.luca@docia.com / 123456</p>
+            </div>
+            
+            <div className="text-center pt-2 border-t border-border/50">
+              <p className="text-xs text-muted-foreground mb-2">
+                💡 <strong>7 dias grátis</strong> para testar todas as funcionalidades
+              </p>
+              <button 
+                className="text-xs text-primary hover:text-primary/80 font-medium transition-colors underline"
+                onClick={() => navigate('/pricing')}
+              >
+                Ver planos e preços →
+              </button>
             </div>
           </div>
         </div>

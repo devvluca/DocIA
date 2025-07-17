@@ -24,11 +24,13 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useNavbar } from '@/contexts/NavbarContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
   const { isCollapsed } = useNavbar();
+  const { user, completeWelcomeSetup } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
@@ -104,12 +106,44 @@ const Settings = () => {
     return labels[specialty] || 'Registro Profissional';
   };
 
-  // Função para carregar dados do localStorage
+  // Função para carregar dados do localStorage e integrar com auth context
   const loadUserProfile = () => {
     const saved = localStorage.getItem('userProfile');
+    
+    // Se há dados salvos no localStorage, usar eles
     if (saved) {
-      return JSON.parse(saved);
+      const savedProfile = JSON.parse(saved);
+      
+      // Se há dados do usuário do auth context, sincronizar
+      if (user) {
+        return {
+          ...savedProfile,
+          name: user.name || savedProfile.name,
+          email: user.email || savedProfile.email,
+          // Detectar gênero baseado no título
+          gender: user.title === 'Dr.' ? 'M' : user.title === 'Dra.' ? 'F' : savedProfile.gender
+        };
+      }
+      
+      return savedProfile;
     }
+    
+    // Se não há dados salvos, usar dados do auth context ou defaults
+    if (user && user.name && user.title) {
+      return {
+        name: user.name,
+        email: user.email || 'usuario@docia.com',
+        specialty: user.isTestUser ? 'Clínico Geral' : 'Cardiologia',
+        crm: user.isTestUser ? '' : '12345-SP',
+        phone: '',
+        bio: user.isTestUser ? '' : 'Profissional de saúde dedicado ao cuidado dos pacientes.',
+        avatar: null,
+        avatarColor: 'bg-blue-500',
+        gender: user.title === 'Dr.' ? 'M' : user.title === 'Dra.' ? 'F' : 'M'
+      };
+    }
+    
+    // Default fallback
     return {
       name: 'Dr. João Silva',
       email: 'joao.silva@email.com',
@@ -119,12 +153,24 @@ const Settings = () => {
       bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.',
       avatar: null,
       avatarColor: 'bg-blue-500',
-      gender: 'M' // M para masculino, F para feminino
+      gender: 'M'
     };
   };
 
   const [userProfile, setUserProfile] = useState(loadUserProfile);
   const [isProfileChanged, setIsProfileChanged] = useState(false);
+  
+  // Sincronizar com dados do auth context quando user mudar
+  useEffect(() => {
+    if (user && user.name && user.title) {
+      setUserProfile(prev => ({
+        ...prev,
+        name: user.name,
+        email: user.email || prev.email,
+        gender: user.title === 'Dr.' ? 'M' : user.title === 'Dra.' ? 'F' : prev.gender
+      }));
+    }
+  }, [user]);
   
   // Salvar automaticamente no localStorage quando o perfil mudar
   useEffect(() => {
@@ -133,7 +179,18 @@ const Settings = () => {
 
   // Detectar mudanças no perfil
   const handleProfileChange = (field: string, value: string) => {
-    setUserProfile(prev => ({ ...prev, [field]: value }));
+    setUserProfile(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Se o gênero mudou, atualizar o nome para refletir o título correto
+      if (field === 'gender' && prev.name) {
+        const nameWithoutTitle = prev.name.replace(/^(Dr\.|Dra\.)/, '').trim();
+        const newTitle = value === 'F' ? 'Dra.' : 'Dr.';
+        updated.name = `${newTitle} ${nameWithoutTitle}`;
+      }
+      
+      return updated;
+    });
     setIsProfileChanged(true);
   };
   const [notifications, setNotifications] = useState({
@@ -142,8 +199,29 @@ const Settings = () => {
     systemUpdates: false,
     appointmentConfirmations: true
   });  const handleSaveProfile = () => {
-    // Os dados já estão sendo salvos automaticamente no localStorage
+    // Salvar no localStorage (já está sendo feito automaticamente)
     setIsProfileChanged(false);
+    
+    // Atualizar também o contexto de autenticação se necessário
+    if (user && (userProfile.name !== user.name)) {
+      // Detectar título baseado no gênero ou manter o existente
+      let title = user.title;
+      if (!title) {
+        title = userProfile.gender === 'F' ? 'Dra.' : 'Dr.';
+      }
+      
+      // Atualizar contexto de autenticação
+      const updatedUserData = {
+        ...user,
+        title: title,
+        name: userProfile.name,
+        email: userProfile.email
+      };
+      
+      // Atualizar localStorage do auth context
+      localStorage.setItem('userData', JSON.stringify(updatedUserData));
+    }
+    
     toast.success('Alteração feita com sucesso!', {
       position: 'bottom-center',
       duration: 3000,

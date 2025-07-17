@@ -18,13 +18,16 @@ import NotFound from "./pages/NotFound";
 import Documents from "@/pages/Documents";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Pricing from "@/pages/Pricing";
+import PaymentSuccess from "@/pages/PaymentSuccess";
+import WelcomeSetup from "@/components/WelcomeSetup";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const { isAuthenticated, isLoading } = useAuth();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const { isAuthenticated, isLoading, needsWelcomeSetup, user, completeWelcomeSetup } = useAuth();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/pricing' || location.pathname === '/payment-success';
 
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
@@ -35,6 +38,18 @@ const AppContent = () => {
           <p className="mt-2 text-muted-foreground">Carregando...</p>
         </div>
       </div>
+    );
+  }
+
+  // Mostrar tela de boas-vindas se usuário estiver autenticado mas precisar configurar perfil
+  if (isAuthenticated && needsWelcomeSetup) {
+    return (
+      <WelcomeSetup 
+        onComplete={completeWelcomeSetup}
+        isTestUser={user?.isTestUser || false}
+        isPaidUser={user?.isPaidUser || false}
+        existingName={user?.name || ''}
+      />
     );
   }
 
@@ -50,6 +65,8 @@ const AppContent = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/" element={
             <ProtectedRoute>
               <Dashboard />

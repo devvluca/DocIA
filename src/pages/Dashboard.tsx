@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, TrendingUp, Users, Calendar, Activity, Filter, Eye, MessageSquare, User } from 'lucide-react';
+import { Plus, Search, TrendingUp, Users, Calendar, Activity, Filter, Eye, MessageSquare, User, Crown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavbar } from '@/contexts/NavbarContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import PatientCard from '@/components/layout/PatientCard';
 import { usePatientData } from '@/hooks/usePatientData';
@@ -15,10 +16,12 @@ import { useTheme } from '@/hooks/useTheme';
 import { Patient } from '@/types';
 import { Link } from 'react-router-dom';
 import AddPatientDialog from '@/components/dialogs/AddPatientDialog';
+import { getUserProfile, getInitials, getFirstName } from '@/lib/userUtils';
 
 const Dashboard = () => {
   const { isCollapsed } = useNavbar();
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { 
     patients, 
     setPatients, 
@@ -26,6 +29,28 @@ const Dashboard = () => {
     getUpcomingAppointments,
     stats 
   } = usePatientData();
+
+  // Obter perfil completo do usuário (combinando auth context + settings)
+  const userProfile = getUserProfile();
+
+  // Função para determinar a saudação baseada no horário
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  };
+
+  // Função para obter o nome de exibição
+  const getDisplayName = () => {
+    const profile = getUserProfile();
+    if (profile?.name) {
+      const firstName = getFirstName(profile.name);
+      const title = profile.gender === 'F' ? 'Dra.' : 'Dr.';
+      return `${title} ${firstName}`;
+    }
+    return 'Doutor(a)';
+  };
   
   // Debug para verificar se o estado está mudando
   console.log('Dashboard - isCollapsed:', isCollapsed);
@@ -147,50 +172,36 @@ const Dashboard = () => {
     return colors[index];
   };
 
-  // Função para carregar perfil do usuário
-  const loadUserProfile = () => {
-    const saved = localStorage.getItem('userProfile');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    return {
-      name: 'Dr. João Silva',
-      email: 'joao.silva@email.com',
-      specialty: 'Cardiologia',
-      crm: '12345-SP',
-      phone: '(11) 99999-9999',
-      bio: 'Cardiologista com 15 anos de experiência em diagnósticos cardiovasculares.',
-      avatar: null,
-      avatarColor: 'bg-blue-500'
-    };
-  };
 
-  const [userProfile] = useState(loadUserProfile);
 
-  // Função para gerar iniciais ignorando "Dr."
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .filter(word => word.toLowerCase() !== 'dr.' && word.toLowerCase() !== 'dr')
-      .map(n => n[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  };
+
   return (
     <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10 lg:w-12 lg:h-12">
-            <AvatarImage src={userProfile.avatar} />
-            <AvatarFallback className={`${userProfile.avatarColor || 'bg-blue-500'} text-white text-sm lg:text-base`}>
-              {getInitials(userProfile.name)}
+            <AvatarImage src={getUserProfile()?.avatar} />
+            <AvatarFallback className={`${getUserProfile()?.avatarColor || 'bg-blue-500'} text-white text-sm lg:text-base`}>
+              {getInitials(getUserProfile()?.name || 'Doutor')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta, {userProfile.name.replace('Dr. ', '').split(' ')[0]}!</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              {getGreeting()}, {getDisplayName()}!
+            </h1>
+            <p className="text-muted-foreground text-sm lg:text-base">
+              {user?.isTestUser ? (
+                <span className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    Conta de Demonstração
+                  </Badge>
+                  Pronto para começar sua jornada no DocIA
+                </span>
+              ) : (
+                `Bem-vindo de volta ao seu painel de controle`
+              )}
+            </p>
           </div>
         </div>
 
@@ -248,6 +259,58 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Plan Information Card */}
+        <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg text-foreground">Plano Teste Grátis</CardTitle>
+                  <p className="text-sm text-muted-foreground">Todas as funcionalidades desbloqueadas</p>
+                </div>
+              </div>
+              <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+                <Clock className="w-3 h-3 mr-1" />
+                5 dias restantes
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="grid grid-cols-3 gap-4 text-center flex-1">
+                <div>
+                  <div className="text-2xl font-bold text-green-600">50</div>
+                  <p className="text-xs text-muted-foreground">Pacientes limite</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">∞</div>
+                  <p className="text-xs text-muted-foreground">Consultas</p>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-600">100%</div>
+                  <p className="text-xs text-muted-foreground">Funcionalidades</p>
+                </div>
+              </div>
+              <div className="ml-6">
+                <Button 
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  onClick={() => window.open('/pricing', '_blank')}
+                >
+                  Ver Planos
+                </Button>
+              </div>
+            </div>
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                💡 <strong>Aproveite seu teste!</strong> Após os 7 dias, continue com nosso plano Completo com IA por apenas R$ 200/mês.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Upcoming Appointments Card */}
         <Card>
