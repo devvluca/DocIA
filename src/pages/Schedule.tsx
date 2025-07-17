@@ -6,17 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Plus, Clock, User, ChevronLeft, ChevronRight, MessageSquare, Settings, Info, Lock, Upload, Download } from 'lucide-react';
+import { Calendar, Plus, Clock, User, ChevronLeft, ChevronRight, MessageSquare, Settings, Info, Lock, Upload, Download, Move, GripVertical, MoreVertical, Edit } from 'lucide-react';
 import { Appointment } from '@/types';
 import { mockPatients, mockAppointments } from '@/data/mockData';
 import ConfirmationDialog from '@/components/ui/confirmation-dialog';
 import { useNavbar } from '@/contexts/NavbarContext';
+import { toast } from 'sonner';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const Schedule = () => {
   const { isCollapsed } = useNavbar();
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 6, 15)); // 15 de julho de 2025
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 6, 15)); // 15 de julho de 2025
   const [viewMode, setViewMode] = useState<'Mês' | 'Semana' | 'Lista'>('Mês');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [showLegends, setShowLegends] = useState(true);
@@ -28,6 +30,16 @@ const Schedule = () => {
     notes: ''
   });
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>(['principal']);
+
+  // Estados para drag and drop
+  const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+  const [dragOverTime, setDragOverTime] = useState<string | null>(null);
+
+  // Estados para menu de contexto
+  const [contextMenuAppointment, setContextMenuAppointment] = useState<Appointment | null>(null);
+  const [showTimeChangeModal, setShowTimeChangeModal] = useState(false);
+  const [newTimeForAppointment, setNewTimeForAppointment] = useState('');
 
   // Estados para modais específicos
   const [editCalendarModal, setEditCalendarModal] = useState({
@@ -54,8 +66,8 @@ const Schedule = () => {
     endTime: '18:00'
   });
 
-  // Array dos dias da semana
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  // Array dos dias da semana (começando na segunda-feira)
+  const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
   // Estados para modais
   const [modalState, setModalState] = useState({
@@ -453,8 +465,8 @@ const Schedule = () => {
         return {
           ...commonTypes,
           'Consulta Veterinária': { color: 'bg-amber-400', border: 'border-amber-400', text: 'text-amber-600' },
-          'Cirurgia Veterinária': { color: 'bg-rose-400', border: 'border-rose-400', text: 'text-rose-600' },
-          'Vacinação': { color: 'bg-emerald-400', border: 'border-emerald-400', text: 'text-emerald-600' },
+          'Cirurgia': { color: 'bg-rose-400', border: 'border-rose-400', text: 'text-rose-600' },
+          'Vacinação': { color: 'bg-cyan-400', border: 'border-cyan-400', text: 'text-cyan-600' },
         };
 
       default:
@@ -497,6 +509,80 @@ const Schedule = () => {
     }
   };
 
+  // Funções para drag and drop de consultas
+  const handleDragStart = (e: React.DragEvent, appointment: Appointment) => {
+    setDraggedAppointment(appointment);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+  };
+
+  const handleDragOver = (e: React.DragEvent, date?: Date, time?: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (date) {
+      setDragOverDate(date.toISOString().split('T')[0]);
+    }
+    if (time) {
+      setDragOverTime(time);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverDate(null);
+    setDragOverTime(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetDate: Date, targetTime?: string) => {
+    e.preventDefault();
+    
+    if (!draggedAppointment) return;
+
+    const newDate = targetDate.toISOString().split('T')[0];
+    const originalDate = draggedAppointment.date;
+    let newTime = targetTime || draggedAppointment.time;
+
+    // Se não foi especificado um horário, manter o horário original
+    if (!targetTime && viewMode === 'Mês') {
+      newTime = draggedAppointment.time;
+    }
+
+    // Verificar se está tentando mover para o mesmo dia e horário
+    if (newDate === originalDate && newTime === draggedAppointment.time) {
+      // Limpar estados do drag sem fazer nada
+      setDraggedAppointment(null);
+      setDragOverDate(null);
+      setDragOverTime(null);
+      return;
+    }
+
+    // Atualizar a consulta
+    setAppointments(prevAppointments => 
+      prevAppointments.map(apt => 
+        apt.id === draggedAppointment.id 
+          ? { ...apt, date: newDate, time: newTime }
+          : apt
+      )
+    );
+
+    // Mostrar toast de sucesso
+    toast.success('Consulta reagendada com sucesso!', {
+      description: `${draggedAppointment.patientName} foi movido(a) para ${targetDate.toLocaleDateString('pt-BR')} às ${newTime}`,
+      duration: 3000,
+    });
+
+    // Limpar estados do drag
+    setDraggedAppointment(null);
+    setDragOverDate(null);
+    setDragOverTime(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedAppointment(null);
+    setDragOverDate(null);
+    setDragOverTime(null);
+  };
+
   const handleExport = () => {
     setModalState({
       isOpen: true,
@@ -505,48 +591,12 @@ const Schedule = () => {
       description: 'Escolha o formato de exportação do seu calendário:',
       onConfirm: () => {
         try {
-          // Create calendar data in ICS format
-          const calendarData = appointments.map(apt => {
-            const patient = mockPatients.find(p => p.id === apt.patientId);
-            const startDateTime = new Date(`${apt.date}T${apt.time}`);
-            const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
-            
-            return [
-              'BEGIN:VEVENT',
-              `DTSTART:${startDateTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-              `DTEND:${endDateTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-              `SUMMARY:${apt.type} - ${apt.patientName}`,
-              `DESCRIPTION:Paciente: ${apt.patientName}\\nTipo: ${apt.type}\\nStatus: ${getStatusText(apt.status)}${apt.notes ? `\\nObservações: ${apt.notes}` : ''}`,
-              `UID:${apt.id}@docia.app`,
-              'END:VEVENT'
-            ].join('\n');
-          }).join('\n');
-
-          const icsContent = [
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'PRODID:-//DocIA//Agenda//PT',
-            'CALSCALE:GREGORIAN',
-            calendarData,
-            'END:VCALENDAR'
-          ].join('\n');
-
-          // Create download
-          const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `agenda_${userProfile.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.ics`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-
+          // Simular exportação
           setModalState({
             isOpen: true,
             type: 'success',
-            title: 'Exportação Concluída',
-            description: 'Seu calendário foi exportado com sucesso! O arquivo pode ser importado no Google Calendar, Outlook ou outros aplicativos de calendário.',
+            title: 'Calendário Exportado',
+            description: 'Seu calendário foi exportado com sucesso!',
             onConfirm: () => {}
           });
         } catch (error) {
@@ -561,6 +611,37 @@ const Schedule = () => {
       }
     });
   };
+
+  // Funções para menu de contexto
+  const handleContextMenu = (e: React.MouseEvent, appointment: Appointment) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenuAppointment(appointment);
+    setNewTimeForAppointment(appointment.time);
+    setShowTimeChangeModal(true);
+  };
+
+  const handleTimeChange = () => {
+    if (!contextMenuAppointment || !newTimeForAppointment) return;
+
+    setAppointments(prevAppointments => 
+      prevAppointments.map(apt => 
+        apt.id === contextMenuAppointment.id 
+          ? { ...apt, time: newTimeForAppointment }
+          : apt
+      )
+    );
+
+    toast.success('Horário alterado com sucesso!', {
+      description: `${contextMenuAppointment.patientName} foi reagendado(a) para ${newTimeForAppointment}`,
+      duration: 3000,
+    });
+
+    setShowTimeChangeModal(false);
+    setContextMenuAppointment(null);
+    setNewTimeForAppointment('');
+  };
+
   return (
     <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
@@ -702,10 +783,9 @@ const Schedule = () => {
                 <div>
                   {/* Cabeçalho dos dias da semana */}
                   <div className="grid grid-cols-7 gap-1 mb-2">
-                    {weekDays.map((day, index) => (
+                    {weekDays.map((day) => (
                       <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
                         <div>{day}</div>
-                        <div className="text-xs">{15 + index}/12</div>
                       </div>
                     ))}
                   </div>
@@ -722,11 +802,15 @@ const Schedule = () => {
                         <div
                           key={index}
                           onClick={() => setSelectedDate(day)}
+                          onDragOver={(e) => handleDragOver(e, day)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, day)}
                           className={`
                             min-h-[100px] lg:min-h-[120px] p-1 lg:p-2 border rounded-lg cursor-pointer transition-all hover:bg-accent
                             ${!isCurrentMonthDay ? 'bg-muted/30' : 'bg-card'}
                             ${isTodayDay ? 'bg-primary/5 border-primary' : ''}
                             ${isSelected ? 'ring-2 ring-primary' : ''}
+                            ${dragOverDate === day.toISOString().split('T')[0] ? 'bg-primary/10 border-primary border-dashed' : ''}
                           `}
                         >
                           <div className="text-sm font-medium mb-1 text-center">
@@ -740,10 +824,38 @@ const Schedule = () => {
                               return (
                                 <div
                                   key={i}
-                                  className={`text-[10px] lg:text-xs p-1 rounded border-l-2 ${typeConfig.color} ${statusConfig.border} text-white truncate`}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, apt)}
+                                  onDragEnd={handleDragEnd}
+                                  onContextMenu={(e) => handleContextMenu(e, apt)}
+                                  className={`text-[10px] lg:text-xs p-1 rounded border-l-2 ${typeConfig.color} ${statusConfig.border} text-white truncate cursor-move hover:opacity-80 transition-opacity flex items-center gap-1 relative group`}
+                                  title={`Clique direito para alterar horário | Arrastar para reagendar: ${apt.time} - ${apt.patientName} (${apt.type})`}
                                 >
-                                  <div className="font-medium">{apt.time}</div>
-                                  <div className="truncate">{apt.patientName.split(' ')[0]}</div>
+                                  <GripVertical className="w-2 h-2 opacity-50" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium">{apt.time}</div>
+                                    <div className="truncate">{apt.patientName.split(' ')[0]}</div>
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button 
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-black/20 rounded"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <MoreVertical className="w-3 h-3" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleContextMenu(e as any, apt); }}>
+                                        <Clock className="w-3 h-3 mr-2" />
+                                        Alterar horário
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* Adicionar função de editar */ }}>
+                                        <Edit className="w-3 h-3 mr-2" />
+                                        Editar consulta
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               );
                             })}
@@ -780,7 +892,7 @@ const Schedule = () => {
                             {weekDays[dayDate.getDay()]}
                           </div>
                           <div className={`text-xs ${isTodayWeek ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-                            {dayDate.getDate()}/{dayDate.getMonth() + 1}
+                            {dayDate.getDate().toString().padStart(2, '0')}/{(dayDate.getMonth() + 1).toString().padStart(2, '0')}
                           </div>
                         </div>
                       );
@@ -802,17 +914,54 @@ const Schedule = () => {
                         );
                         
                         return (
-                          <div key={dayIndex} className="border-r p-1 hover:bg-accent cursor-pointer relative">
-                            {hourAppointments.map((appointment) => (
-                              <div
-                                key={appointment.id}
-                                className="text-xs p-1 mb-1 rounded bg-primary/20 border-l-2 border-primary truncate"
-                                title={`${appointment.time} - ${appointment.patientName} (${appointment.type})`}
-                              >
-                                <div className="font-medium truncate">{appointment.patientName}</div>
-                                <div className="text-muted-foreground truncate">{appointment.type}</div>
-                              </div>
-                            ))}
+                          <div 
+                            key={dayIndex} 
+                            className="border-r p-1 hover:bg-accent cursor-pointer relative"
+                            onDragOver={(e) => handleDragOver(e, dayDate, hour)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, dayDate, hour)}
+                          >
+                            <div className={`
+                              ${dragOverDate === dayDate.toISOString().split('T')[0] && dragOverTime === hour ? 'bg-primary/10 border border-primary border-dashed rounded' : ''}
+                            `}>
+                              {hourAppointments.map((appointment) => (
+                                <div
+                                  key={appointment.id}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, appointment)}
+                                  onDragEnd={handleDragEnd}
+                                  onContextMenu={(e) => handleContextMenu(e, appointment)}
+                                  className="text-xs p-1 mb-1 rounded bg-primary/20 border-l-2 border-primary truncate cursor-move hover:opacity-80 transition-opacity flex items-center gap-1 relative group"
+                                  title={`Clique direito para alterar horário | Arrastar para reagendar: ${appointment.time} - ${appointment.patientName} (${appointment.type})`}
+                                >
+                                  <GripVertical className="w-2 h-2 opacity-50" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate">{appointment.patientName}</div>
+                                    <div className="text-muted-foreground truncate">{appointment.type}</div>
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button 
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-black/20 rounded"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <MoreVertical className="w-3 h-3" />
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleContextMenu(e as any, appointment); }}>
+                                        <Clock className="w-3 h-3 mr-2" />
+                                        Alterar horário
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* Adicionar função de editar */ }}>
+                                        <Edit className="w-3 h-3 mr-2" />
+                                        Editar consulta
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         );
                       })}
@@ -1098,6 +1247,62 @@ const Schedule = () => {
         showCancel={modalState.type === 'info'}
         confirmText={modalState.type === 'info' ? 'Confirmar' : 'OK'}
       />
+
+      {/* Modal para Alterar Horário */}
+      <Dialog open={showTimeChangeModal} onOpenChange={setShowTimeChangeModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-blue-500" />
+              Alterar Horário
+            </DialogTitle>
+          </DialogHeader>
+          {contextMenuAppointment && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="text-sm">
+                  <strong>Paciente:</strong> {contextMenuAppointment.patientName}
+                </p>
+                <p className="text-sm">
+                  <strong>Tipo:</strong> {contextMenuAppointment.type}
+                </p>
+                <p className="text-sm">
+                  <strong>Data:</strong> {new Date(contextMenuAppointment.date).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="new-time">Novo Horário</Label>
+                <Input
+                  id="new-time"
+                  type="time"
+                  value={newTimeForAppointment}
+                  onChange={(e) => setNewTimeForAppointment(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowTimeChangeModal(false);
+                setContextMenuAppointment(null);
+                setNewTimeForAppointment('');
+              }}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleTimeChange}
+              disabled={!newTimeForAppointment}
+              className="flex-1"
+            >
+              Salvar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal para Editar Calendário */}
       <Dialog open={editCalendarModal.isOpen} onOpenChange={(open) => setEditCalendarModal({ ...editCalendarModal, isOpen: open })}>

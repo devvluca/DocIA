@@ -181,37 +181,17 @@ const Dashboard = () => {
     <div className={`min-h-screen bg-background pt-16 lg:pt-2 transition-all duration-300 ${isCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
       <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10 lg:w-12 lg:h-12">
-              <AvatarImage src={userProfile.avatar} />
-              <AvatarFallback className={`${userProfile.avatarColor || 'bg-blue-500'} text-white text-sm lg:text-base`}>
-                {getInitials(userProfile.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta, {userProfile.name.replace('Dr. ', '').split(' ')[0]}!</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <Avatar className="w-10 h-10 lg:w-12 lg:h-12">
+            <AvatarImage src={userProfile.avatar} />
+            <AvatarFallback className={`${userProfile.avatarColor || 'bg-blue-500'} text-white text-sm lg:text-base`}>
+              {getInitials(userProfile.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground text-sm lg:text-base">Bem-vindo de volta, {userProfile.name.replace('Dr. ', '').split(' ')[0]}!</p>
           </div>
-          
-          <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="medical-gradient text-white hover:opacity-90 w-full sm:w-auto"
-                onClick={openAddDialog}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Paciente
-              </Button>
-            </DialogTrigger>
-            <AddPatientDialog 
-              onAddPatient={handleAddPatient} 
-              onEditPatient={handleEditPatient}
-              editingPatient={editingPatient}
-              mode={dialogMode}
-            />
-          </Dialog>
         </div>
 
         {/* Overview Stats Cards */}
@@ -311,6 +291,23 @@ const Dashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg lg:text-xl">Gerenciamento de Pacientes</CardTitle>
+              <Dialog open={isAddPatientOpen} onOpenChange={setIsAddPatientOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="medical-gradient text-white hover:opacity-90"
+                    onClick={openAddDialog}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Paciente
+                  </Button>
+                </DialogTrigger>
+                <AddPatientDialog 
+                  onAddPatient={handleAddPatient} 
+                  onEditPatient={handleEditPatient}
+                  editingPatient={editingPatient}
+                  mode={dialogMode}
+                />
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
